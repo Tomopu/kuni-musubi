@@ -4,13 +4,13 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  "workspaceFolder": "/workspace/kuni-musubi",
-  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/kuni-musubi",
+  "remoteUser": "node",
   "features": {
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
   "mounts": [
-    "source=claude-code-config-kuni-musubi,target=/home/vscode/.claude,type=volume"
+    "source=claude-code-config-kuni-musubi,target=/home/node/.claude,type=volume"
   ],
   "containerEnv": {
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",

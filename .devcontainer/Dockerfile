@@ -18,4 +18,7 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /home/node/.claude \
+  && chown -R node:node /home/node/.claude
+
 COPY .devcontainer/managed-settings.json /etc/claude-code/managed-settings.json
