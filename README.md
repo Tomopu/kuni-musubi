@@ -4,6 +4,8 @@
 
 ## 開発環境のセットアップ
 
+Claude Code を Docker サンドボックス内で使う場合は、先に `docs/development/README.md` を参照してください。
+
 ### 前提
 
 - Docker / Docker Compose

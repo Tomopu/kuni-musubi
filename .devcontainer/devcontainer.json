@@ -1,0 +1,40 @@
+{
+  "name": "kuni-musubi-secure",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspace/kuni-musubi",
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+  "mounts": [
+    "source=claude-code-config-kuni-musubi,target=/home/vscode/.claude,type=volume"
+  ],
+  "containerEnv": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_SKIP_PROMPT_HISTORY": "1"
+  },
+  "runArgs": [
+    "--cap-drop=ALL",
+    "--security-opt",
+    "no-new-privileges:true"
+  ],
+  "forwardPorts": [
+    3000,
+    8000,
+    5432
+  ],
+  "postCreateCommand": "python3 --version && node --version && npm --version && claude --version || true",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}
