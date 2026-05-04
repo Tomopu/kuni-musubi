@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from app.infrastructure.db.repositories.article_repository import ArticleRepository
 from app.infrastructure.db.repositories.party_repository import PartyRepository
 from app.schemas.article import (
-    ArticleCategoryResponse,
     ArticleCardResponse,
+    ArticleCategoryResponse,
     ArticlePartyResponse,
     ArticleThumbnail,
 )
@@ -26,7 +26,7 @@ def execute(db: Session, *, party_id: UUID) -> PartyDetailResponse | None:
     article_repo = ArticleRepository(db)
     articles = article_repo.list_articles(
         party_ids=[party_id],
-        sort="newest",
+        sort="latest",
         limit=LATEST_ARTICLES_LIMIT,
     )
     items = articles[:LATEST_ARTICLES_LIMIT]

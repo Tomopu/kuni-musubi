@@ -5,7 +5,6 @@ type Pose = "greeting" | "thumbsup" | "thinking";
 const SHEET_W = 1350;
 const COL_W = 150;
 const ROW_HEADER_H = 35;
-const CELL_H = 165;
 const CHAR_CENTER_Y_IN_CELL = 90;
 
 const POSE_COL: Record<Pose, number> = {

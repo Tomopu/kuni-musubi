@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,11 +11,13 @@ from app.infrastructure.db.session import engine
 from app.settings import Settings
 
 settings = Settings()
+skip_db_init = os.getenv("SKIP_DB_INIT", "").lower() in {"1", "true", "yes"}
 
-models.Base.metadata.create_all(bind=engine)
-ensure_dev_schema(engine)
+if not skip_db_init:
+    models.Base.metadata.create_all(bind=engine)
+    ensure_dev_schema(engine)
 
-if settings.auto_seed_demo_data:
+if settings.auto_seed_demo_data and not skip_db_init:
     run_seeds()
 
 app = FastAPI(title="Kuni-Musubi API", version="0.1.0")

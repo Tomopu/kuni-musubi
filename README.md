@@ -125,8 +125,21 @@ cd batch
 uv venv
 uv pip install -e ".[dev]"
 
+# LLM スキーマバリデーションテスト（DB 不要）
 uv run pytest
+
+# DB 保存ステップを含むテストや手動実行は backend の PYTHONPATH が必要
+PYTHONPATH=../backend uv run python -m batch.main --dry-run
+PYTHONPATH=../backend uv run pytest
 ```
+
+### 必要な環境変数
+
+| 変数名 | 説明 |
+|---|---|
+| `DATABASE_URL` | PostgreSQL 接続文字列（`.env` に記述） |
+| `ANTHROPIC_API_KEY` | Anthropic API キー（LLM 処理に必要） |
+| `LLM_MODEL` | 使用する LLM モデル（デフォルト: claude-haiku-4-5-20251001） |
 
 ---
 
