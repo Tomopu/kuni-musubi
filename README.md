@@ -42,6 +42,22 @@ docker compose down
 - ヘルスチェック: `http://localhost:8000/health`
 - API ドキュメント: `http://localhost:8000/docs`
 
+### ダミーデータ
+
+開発環境では backend 起動時に、政党、政策カテゴリ、デモ記事が自動投入されます。
+投入処理は固定 ID を使った冪等処理のため、backend を再起動しても同じ記事が重複作成されません。
+
+```bash
+# DB volume を残してコンテナだけ削除する。ダミーデータは残る。
+docker compose down
+
+# DB volume ごと削除する。次回 backend 起動時にダミーデータが再投入される。
+docker compose down -v
+docker compose up -d
+```
+
+自動投入を止めたい場合は、backend の環境変数 `AUTO_SEED_DEMO_DATA=false` を設定してください。
+
 ---
 
 ## フロントエンドの起動（ローカル）
@@ -130,4 +146,5 @@ docker compose --profile full up -d
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL 接続文字列 | `postgresql://kuni_musubi:kuni_musubi@localhost:5432/kuni_musubi` |
 | `CORS_ORIGINS` | 許可する CORS オリジン（JSON 配列） | `["http://localhost:3000"]` |
+| `AUTO_SEED_DEMO_DATA` | 開発用の政党、カテゴリ、デモ記事を起動時に投入するか | `true` |
 | `NEXT_PUBLIC_API_BASE_URL` | フロントエンドから見た API の URL | `http://localhost:8000` |

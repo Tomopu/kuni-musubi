@@ -7,3 +7,4 @@ class PolicyCategoryResponse(BaseModel):
     id: UUID
     name: str
     slug: str
+    display_order: int = 0

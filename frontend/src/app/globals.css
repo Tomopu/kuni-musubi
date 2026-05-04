@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/* カラーパレット（CSS カスタムプロパティ） */
+:root {
+  --color-brand-primary: #4caf50;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #666666;
+  --color-bg-base: #ffffff;
+  --color-bg-surface: #f8f9fa;
+  --color-bg-muted: #f0f0f0;
+  --color-border: #e0e0e0;
+}
+
+/* ベーススタイル */
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-noto-sans-jp, "Noto Sans JP", sans-serif);
+}
+
+/* モバイル時のボトムタブバー用余白 */
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: 56px;
+  }
+}
+
+/* prefers-reduced-motion: アニメーション無効化 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

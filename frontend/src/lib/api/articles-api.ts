@@ -1,59 +1,91 @@
-import { API_BASE_URL } from "@/lib/constants";
+import { apiGet } from "@/lib/api/client";
 
-export type ArticleCardThumbnail = {
-  type: "none" | "text" | "manual_image" | "category_default";
+// 記事に関連する政党情報
+export type ArticlePartyInfo = {
+  id: string;
+  name: string;
+  short_name: string;
+  color_hex: string;
+};
+
+// 記事に関連するカテゴリ情報
+export type ArticleCategoryInfo = {
+  id: string;
+  name: string;
+};
+
+// 記事サムネイル情報
+export type ArticleThumbnail = {
+  type: string;
   text: string | null;
   url: string | null;
 };
 
-export type ArticleCardParty = {
-  id: string;
-  name: string;
-  short_name: string;
-};
-
-export type ArticleCard = {
+// 記事カードレスポンス
+export type ArticleCardResponse = {
   id: string;
   display_title: string;
   card_summary: string;
-  thumbnail: ArticleCardThumbnail;
-  parties: ArticleCardParty[];
-  categories: string[];
+  thumbnail: ArticleThumbnail;
+  parties: ArticlePartyInfo[];
+  categories: ArticleCategoryInfo[];
   published_at: string;
 };
 
-export type ArticlesResponse = {
-  items: ArticleCard[];
+// 記事表示コンテンツ（ポジティブポイント・生活影響・世論・課題）
+export type ArticleDisplayContent = {
+  positive_point: string;
+  life_impact: string;
+  public_reactions_summary: string | null;
+  remaining_issues: string[];
+};
+
+// 出典情報
+export type ArticleSource = {
+  source_name: string | null;
+  source_url: string;
+  published_at: string | null;
+  retrieved_at: string | null;
+};
+
+// 記事詳細レスポンス
+export type ArticleDetailResponse = ArticleCardResponse & {
+  display_content: ArticleDisplayContent | null;
+  sources: ArticleSource[];
+};
+
+// 記事一覧レスポンス
+export type ArticleListResponse = {
+  items: ArticleCardResponse[];
   next_cursor: string | null;
 };
 
-export type ArticlesQuery = {
+// 記事一覧取得パラメータ
+export type ListArticlesParams = {
   party_id?: string;
-  category_ids?: string[];
+  category_id?: string;
   sort?: "latest" | "important";
-  limit?: number;
+  limit?: string;
   cursor?: string;
 };
 
-export async function fetchArticles(
-  query: ArticlesQuery = {}
-): Promise<ArticlesResponse> {
-  const params = new URLSearchParams();
-  if (query.party_id) params.set("party_id", query.party_id);
-  if (query.category_ids?.length)
-    params.set("category_ids", query.category_ids.join(","));
-  if (query.sort) params.set("sort", query.sort);
-  if (query.limit) params.set("limit", String(query.limit));
-  if (query.cursor) params.set("cursor", query.cursor);
+// 1. 記事一覧を取得する
+export async function listArticles(
+  params?: ListArticlesParams,
+): Promise<ArticleListResponse> {
+  const queryParams: Record<string, string> = {};
+  if (params?.party_id) queryParams.party_id = params.party_id;
+  if (params?.category_id) queryParams.category_id = params.category_id;
+  if (params?.sort) queryParams.sort = params.sort;
+  if (params?.limit) queryParams.limit = params.limit;
+  if (params?.cursor) queryParams.cursor = params.cursor;
 
-  const res = await fetch(`${API_BASE_URL}/articles?${params}`);
-  if (!res.ok) throw new Error(`GET /articles failed: ${res.status}`);
-  return res.json();
+  return apiGet<ArticleListResponse>("/articles", queryParams);
 }
 
-export async function fetchArticleDetail(articleId: string): Promise<unknown> {
-  const res = await fetch(`${API_BASE_URL}/articles/${articleId}`);
-  if (!res.ok)
-    throw new Error(`GET /articles/${articleId} failed: ${res.status}`);
-  return res.json();
+// 2. 記事詳細を取得する
+export async function getArticleDetail(
+  id: string,
+): Promise<ArticleDetailResponse> {
+  return apiGet<ArticleDetailResponse>(`/articles/${id}`);
 }

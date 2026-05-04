@@ -1,36 +1,66 @@
 import { PREFERENCES_STORAGE_KEY } from "@/lib/constants";
 
-export type UserPreference = {
-  ageGroup: string | null;
-  selectedPartyId: string | null;
-  interestCategoryIds: string[];
-  completedOnboarding: boolean;
+// ユーザー設定の型定義
+export type UserPreferences = {
+  ageGroup: string | null; // "10s" | "20s" | ... | "60s_plus" | "no_answer"
+  supportedPartyId: string | null; // 政党 ID または "none" | "unknown" | "skipped"
+  interestedCategoryIds: string[]; // カテゴリ ID の配列
+  onboardingCompleted: boolean;
 };
 
-const defaultPreferences: UserPreference = {
+// デフォルト値
+const DEFAULT_PREFERENCES: UserPreferences = {
   ageGroup: null,
-  selectedPartyId: null,
-  interestCategoryIds: [],
-  completedOnboarding: false,
+  supportedPartyId: null,
+  interestedCategoryIds: [],
+  onboardingCompleted: false,
 };
 
-export function loadPreferences(): UserPreference {
-  if (typeof window === "undefined") return defaultPreferences;
+// 1. localStorage からユーザー設定を取得する
+export function getPreferences(): UserPreferences {
+  if (typeof window === "undefined") {
+    return { ...DEFAULT_PREFERENCES };
+  }
   try {
     const raw = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-    if (!raw) return defaultPreferences;
-    return { ...defaultPreferences, ...JSON.parse(raw) };
+    if (!raw) return { ...DEFAULT_PREFERENCES };
+    const parsed = JSON.parse(raw) as Partial<UserPreferences>;
+    return {
+      ageGroup: parsed.ageGroup ?? null,
+      supportedPartyId: parsed.supportedPartyId ?? null,
+      interestedCategoryIds: Array.isArray(parsed.interestedCategoryIds)
+        ? parsed.interestedCategoryIds
+        : [],
+      onboardingCompleted: parsed.onboardingCompleted ?? false,
+    };
   } catch {
-    return defaultPreferences;
+    return { ...DEFAULT_PREFERENCES };
   }
 }
 
-export function savePreferences(preferences: UserPreference): void {
+// 2. ユーザー設定を部分的に localStorage に保存する
+export function savePreferences(prefs: Partial<UserPreferences>): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
+  try {
+    const current = getPreferences();
+    const updated: UserPreferences = { ...current, ...prefs };
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(updated));
+  } catch {
+    // localStorage が使用不可の場合は何もしない
+  }
 }
 
-export function clearPreferences(): void {
+// 3. ユーザー設定をリセットする
+export function resetPreferences(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(PREFERENCES_STORAGE_KEY);
+  try {
+    localStorage.removeItem(PREFERENCES_STORAGE_KEY);
+  } catch {
+    // localStorage が使用不可の場合は何もしない
+  }
+}
+
+// 4. オンボーディング完了状態を確認する
+export function hasCompletedOnboarding(): boolean {
+  return getPreferences().onboardingCompleted;
 }

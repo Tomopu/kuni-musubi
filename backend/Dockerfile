@@ -4,10 +4,11 @@ WORKDIR /app
 
 RUN pip install uv
 
-COPY pyproject.toml .
+COPY backend/pyproject.toml .
 RUN uv pip install --system --no-cache -r pyproject.toml
 
-COPY . .
+COPY backend/ .
+COPY docs/research/data/ docs/research/data/
 
 EXPOSE 8000
 

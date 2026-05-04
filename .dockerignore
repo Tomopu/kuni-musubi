@@ -1,0 +1,10 @@
+.git
+.next
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/node_modules
+frontend/.next
+frontend/out
+frontend/tsconfig.tsbuildinfo

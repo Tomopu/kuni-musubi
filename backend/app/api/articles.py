@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -10,7 +10,6 @@ from app.usecases import get_article_detail, list_articles
 
 router = APIRouter(prefix="/articles", tags=["articles"])
 
-ALLOWED_SORT_VALUES = {"latest", "important"}
 MAX_LIMIT = 50
 
 
@@ -19,12 +18,10 @@ def get_articles(
     db: Annotated[Session, Depends(get_db)],
     party_id: UUID | None = Query(default=None),
     category_ids: str | None = Query(default=None),
-    sort: str = Query(default="latest"),
+    sort: Literal["latest", "important"] = Query(default="latest"),
     limit: int = Query(default=20, ge=1, le=MAX_LIMIT),
     cursor: str | None = Query(default=None),
 ) -> ArticleListResponse:
-    if sort not in ALLOWED_SORT_VALUES:
-        raise HTTPException(status_code=422, detail=f"sort must be one of {ALLOWED_SORT_VALUES}")
     parsed_category_ids = category_ids.split(",") if category_ids else []
     return list_articles.execute(
         db,

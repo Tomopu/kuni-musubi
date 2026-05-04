@@ -17,12 +17,14 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://kuni_musubi:kuni_musubi@db:5432/kuni_musubi
       CORS_ORIGINS: '["http://localhost:3000"]'
+      AUTO_SEED_DEMO_DATA: "true"
     depends_on:
       db:
         condition: service_healthy
@@ -31,6 +33,9 @@ services:
         - action: sync
           path: ./backend
           target: /app
+        - action: sync
+          path: ./docs/research/data
+          target: /app/docs/research/data
 
   # frontend はローカル起動を基本とする。
   # docker compose --profile full up で起動する。
