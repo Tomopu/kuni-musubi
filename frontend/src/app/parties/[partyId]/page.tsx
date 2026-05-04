@@ -56,23 +56,29 @@ export default async function PartyDetailPage({ params }: Props) {
 
       {/* 政党ヘッダー */}
       <div
-        className="flex items-center gap-3 mb-5"
+        className="mb-5"
         style={{ borderLeft: `4px solid ${party.color_hex ?? "var(--color-brand-primary)"}`, paddingLeft: "0.75rem" }}
       >
-        <div>
+        <div className="flex items-center gap-2 mb-0.5">
+          <span
+            className="text-xs font-bold px-1.5 py-0.5 rounded text-white"
+            style={{ backgroundColor: "#E53935" }}
+          >
+            最新
+          </span>
           <h1
             className="text-2xl font-bold leading-snug"
             style={{ color: "var(--color-text-primary)" }}
           >
             {party.name}
           </h1>
-          <p
-            className="text-sm mt-0.5"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            {party.short_name}
-          </p>
         </div>
+        <p
+          className="text-sm"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          {party.short_name}
+        </p>
       </div>
 
       {/* 議席カード（3列） */}

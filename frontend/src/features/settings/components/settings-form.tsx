@@ -13,6 +13,7 @@ import {
   PARTY_OPTIONS,
   CATEGORY_OPTIONS,
 } from "@/lib/constants/parties";
+import { getPartyColor } from "@/lib/constants/party-colors";
 
 // 設定フォームコンポーネント（Client Component）
 // 現在の設定値が選択済み状態で表示され、変更は即時 localStorage に保存される
@@ -124,30 +125,32 @@ export function SettingsForm() {
           支持政党の Good News がホームに表示されます（任意）
         </p>
         <div className="flex flex-wrap gap-2">
-          {PARTY_OPTIONS.map((party) => (
-            <button
-              key={party.id}
-              type="button"
-              onClick={() => handlePartyChange(party.id)}
-              className="px-4 py-2 rounded-full text-sm border transition-colors duration-150"
-              style={{
-                borderColor:
-                  supportedPartyId === party.id
-                    ? "var(--color-brand-primary)"
-                    : "var(--color-border)",
-                backgroundColor:
-                  supportedPartyId === party.id
-                    ? "var(--color-brand-primary)"
-                    : "transparent",
-                color:
-                  supportedPartyId === party.id
-                    ? "#ffffff"
-                    : "var(--color-text-primary)",
-              }}
-            >
-              {party.name}
-            </button>
-          ))}
+          {PARTY_OPTIONS.map((party) => {
+            const isSelected = supportedPartyId === party.id;
+            const dotColor = getPartyColor(party.id);
+            const hasDot = party.id !== "none" && party.id !== "unknown" && party.id !== "other";
+            return (
+              <button
+                key={party.id}
+                type="button"
+                onClick={() => handlePartyChange(party.id)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm border transition-colors duration-150"
+                style={{
+                  borderColor: isSelected ? "var(--color-brand-primary)" : "var(--color-border)",
+                  backgroundColor: isSelected ? "var(--color-brand-primary)" : "transparent",
+                  color: isSelected ? "#ffffff" : "var(--color-text-primary)",
+                }}
+              >
+                {hasDot && (
+                  <span
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: isSelected ? "rgba(255,255,255,0.8)" : dotColor }}
+                  />
+                )}
+                {party.name}
+              </button>
+            );
+          })}
         </div>
       </section>
 

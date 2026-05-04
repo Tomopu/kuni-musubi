@@ -2,27 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listParties, type PartyResponse } from "@/lib/api/parties-api";
 import { PageContainer } from "@/components/layout/page-container";
+import { SemiDonutChart, type ChartSegment } from "@/features/parties/components/semi-donut-chart";
 
 export const metadata: Metadata = {
   title: "政党一覧 | Kuni-Musubi",
 };
 
-// 衆参合計議席数から CSS conic-gradient 文字列を生成する（ドーナツチャート用）
-function buildConicGradient(parties: PartyResponse[], totalSeats: number): string {
-  if (totalSeats === 0) return "transparent";
-  const stops: string[] = [];
-  let acc = 0;
-  for (const party of parties) {
-    const seats = party.total_seats;
-    if (seats === 0) continue;
-    const start = (acc / totalSeats) * 100;
-    acc += seats;
-    const end = (acc / totalSeats) * 100;
-    stops.push(
-      `${party.color_hex ?? "#999999"} ${start.toFixed(1)}% ${end.toFixed(1)}%`,
-    );
-  }
-  return `conic-gradient(${stops.join(", ")})`;
+// PartyResponse[] → ChartSegment[]（議席数 0 の政党は除外）
+function toSegments(parties: PartyResponse[], key: "house_of_representatives_seats" | "house_of_councillors_seats"): ChartSegment[] {
+  return parties
+    .filter((p) => (p[key] ?? 0) > 0)
+    .map((p) => ({
+      id: p.id,
+      name: p.short_name ?? p.name,
+      color: p.color_hex ?? "#999999",
+      seats: p[key] ?? 0,
+    }));
 }
 
 // 政党一覧画面（Server Component）
@@ -34,12 +29,11 @@ export default async function PartiesPage() {
     parties = [];
   }
 
-  const totalSeats = parties.reduce(
-    (sum, p) => sum + p.total_seats,
-    0,
-  );
+  const totalHR = parties.reduce((sum, p) => sum + (p.house_of_representatives_seats ?? 0), 0);
+  const totalHC = parties.reduce((sum, p) => sum + (p.house_of_councillors_seats ?? 0), 0);
 
-  const conicGradient = buildConicGradient(parties, totalSeats);
+  const hrSegments = toSegments(parties, "house_of_representatives_seats");
+  const hcSegments = toSegments(parties, "house_of_councillors_seats");
 
   return (
     <PageContainer className="py-6">
@@ -50,59 +44,25 @@ export default async function PartiesPage() {
         政党一覧
       </h1>
 
-      {/* 議席ドーナツチャート */}
-      {totalSeats > 0 && (
-        <section className="mb-8 flex flex-col items-center">
-          {/* ドーナツ本体 */}
-          <div className="relative w-44 h-44">
-            <div
-              className="w-full h-full rounded-full"
-              style={{ background: conicGradient }}
-            />
-            {/* 中央の穴 + 合計議席数 */}
-            <div
-              className="absolute inset-0 m-auto w-28 h-28 rounded-full flex flex-col items-center justify-center"
-              style={{ backgroundColor: "var(--color-bg-base)" }}
-            >
-              <span
-                className="text-2xl font-bold leading-none"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                {totalSeats}
-              </span>
-              <span
-                className="text-xs mt-0.5"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                議席（合計）
-              </span>
-            </div>
-          </div>
-
-          {/* 凡例 */}
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mt-4 max-w-sm">
-            {parties
-              .filter(
-                (p) =>
-                  p.total_seats > 0,
-              )
-              .map((party) => (
-                <div key={party.id} className="flex items-center gap-1.5">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: party.color_hex ?? "#999999" }}
-                  />
-                  <span
-                    className="text-xs"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    {party.short_name}
-                  </span>
-                </div>
-              ))}
-          </div>
+      {/* 衆参議席半円グラフ */}
+      {(totalHR > 0 || totalHC > 0) && (
+        <section className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {totalHR > 0 && (
+            <SemiDonutChart title="衆議院" total={totalHR} segments={hrSegments} />
+          )}
+          {totalHC > 0 && (
+            <SemiDonutChart title="参議院" total={totalHC} segments={hcSegments} />
+          )}
         </section>
       )}
+
+      {/* 政党リスト見出し */}
+      <p
+        className="text-xs font-medium mb-3"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
+        詳しく知りたい方はこちら
+      </p>
 
       {/* 政党リスト（縦並び） */}
       <ul

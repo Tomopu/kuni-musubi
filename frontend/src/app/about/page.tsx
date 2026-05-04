@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageContainer } from "@/components/layout/page-container";
+import { MascotImage } from "@/components/ui/mascot-image";
 
 export const metadata: Metadata = {
   title: "このアプリについて | Kuni-Musubi",
@@ -55,23 +56,28 @@ export default function AboutPage() {
   return (
     <PageContainer>
       <div className="py-8">
-        {/* ヘッダー */}
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-4">🌱</div>
-          <h1
-            className="text-2xl font-bold mb-2"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            このアプリについて
-          </h1>
-          <p
-            className="text-sm leading-relaxed"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            Kuni-Musubi をもっと知っていただくために、
-            <br />
-            大切にしていることをお伝えします。
-          </p>
+        {/* ヘッダーカード: テキスト左 + マスコット右 */}
+        <div
+          className="rounded-2xl px-6 py-6 flex items-center gap-4 mb-8"
+          style={{ backgroundColor: "#FFF9E6" }}
+        >
+          <div className="flex-1 min-w-0">
+            <h1
+              className="text-xl font-bold mb-1.5"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              このアプリについて
+            </h1>
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              Kuni-Musubi が大切にしていること、
+              <br />
+              プライバシーの考え方をお伝えします。
+            </p>
+          </div>
+          <MascotImage pose="greeting" size={90} />
         </div>
 
         {/* 説明カード一覧 */}

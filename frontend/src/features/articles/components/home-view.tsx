@@ -6,6 +6,7 @@ import { getPreferences } from "@/lib/storage/preferences-storage";
 import { listArticles, type ArticleCardResponse } from "@/lib/api/articles-api";
 import { listParties, type PartyResponse } from "@/lib/api/parties-api";
 import { ArticleCard } from "@/features/articles/components/article-card";
+import { MascotImage } from "@/components/ui/mascot-image";
 
 // ホーム画面のビューコンポーネント（Client Component）
 // localStorage から設定を読み、ヒーローバナー・記事一覧・政党フィルターを表示する
@@ -13,8 +14,8 @@ export function HomeView() {
   const [articles, setArticles] = useState<ArticleCardResponse[]>([]);
   const [parties, setParties] = useState<PartyResponse[]>([]);
   const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null);
-  // 支持政党（ヒーローバナー用）
   const [heroPartyName, setHeroPartyName] = useState<string | null>(null);
+  const [heroPartyId, setHeroPartyId] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -26,15 +27,18 @@ export function HomeView() {
       .catch(() => setParties([]));
   }, []);
 
-  // 2. DB 由来の政党一覧から支持政党名を解決する
+  // 2. DB 由来の政党一覧から支持政党名・IDを解決する
   useEffect(() => {
     const prefs = getPreferences();
     const partyId = prefs.supportedPartyId;
     if (!partyId || partyId === "none" || partyId === "unknown" || partyId === "other") {
       setHeroPartyName(null);
+      setHeroPartyId(null);
       return;
     }
-    setHeroPartyName(parties.find((p) => p.id === partyId)?.name ?? null);
+    const party = parties.find((p) => p.id === partyId);
+    setHeroPartyName(party?.name ?? null);
+    setHeroPartyId(partyId);
   }, [parties]);
 
   // 3. 記事一覧を取得する
@@ -76,22 +80,22 @@ export function HomeView() {
   };
 
   const hasSelectedParty = heroPartyName !== null;
+  const heroParty = heroPartyId ? parties.find((p) => p.id === heroPartyId) : null;
+  const heroPartyColor = heroParty?.color_hex ?? "#4caf50";
   const selectedPartyName = parties.find((p) => p.id === selectedPartyId)?.name;
   const articleSectionTitle = selectedPartyName
     ? `${selectedPartyName}のニュース`
     : "すべてのニュース";
 
+  // ヒーローの背景スタイル
+  const heroBgStyle = hasSelectedParty
+    ? { background: `linear-gradient(135deg, ${heroPartyColor} 0%, ${heroPartyColor}cc 100%)` }
+    : { backgroundColor: "#FFF9E6" };
+
   return (
     <div>
       {/* ヒーローバナー */}
-      <div
-        className="rounded-2xl overflow-hidden mb-6"
-        style={{
-          backgroundColor: hasSelectedParty
-            ? "var(--color-brand-primary)"
-            : "var(--color-bg-surface)",
-        }}
-      >
+      <div className="rounded-2xl overflow-hidden mb-6" style={heroBgStyle}>
         <div className="px-5 py-5 flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             {hasSelectedParty ? (
@@ -139,18 +143,8 @@ export function HomeView() {
             )}
           </div>
 
-          {/* マスコットプレースホルダー */}
-          <div
-            className="flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center text-3xl select-none"
-            aria-hidden="true"
-            style={{
-              backgroundColor: hasSelectedParty
-                ? "rgba(255,255,255,0.2)"
-                : "var(--color-bg-muted)",
-            }}
-          >
-            🌱
-          </div>
+          {/* マスコットキャラクター */}
+          <MascotImage pose="greeting" size={72} />
         </div>
       </div>
 
@@ -160,7 +154,7 @@ export function HomeView() {
           className="text-xs font-medium mb-2"
           style={{ color: "var(--color-text-secondary)" }}
         >
-          政党を選択
+          政党を選ぶ
         </p>
         <div
           className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4"
