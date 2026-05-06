@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   BadgeHelp,
   BookOpen,
@@ -25,9 +26,9 @@ import {
   PARTY_OPTIONS,
   CATEGORY_OPTIONS,
 } from "@/lib/constants/parties";
+import { getPartyColor } from "@/lib/constants/party-colors";
 import { listParties, type PartyResponse } from "@/lib/api/parties-api";
 import { Button } from "@/components/ui/button";
-import { MascotImage } from "@/components/ui/mascot-image";
 
 // 番号付きバッジ（緑丸 + 白数字）
 function NumberBadge({ n }: { n: number }) {
@@ -88,7 +89,7 @@ function fallbackPartyOptions(): PartySelectOption[] {
     id: party.id,
     name: party.name,
     shortName: party.shortName,
-    colorHex: null,
+    colorHex: getPartyColor(party.id),
   }));
 }
 
@@ -191,7 +192,14 @@ export function OnboardingForm() {
             </button>
           ))}
         </div>
-        <MascotImage pose="thinking" size={72} className="onboarding-step__mascot" />
+        <Image
+          src="/assets/mascot/mascot-think.png"
+          alt=""
+          width={86}
+          height={86}
+          className="onboarding-step__mascot"
+          aria-hidden="true"
+        />
       </section>
 
       <section className="onboarding-step onboarding-step--party">
@@ -214,17 +222,21 @@ export function OnboardingForm() {
                 key={party.id}
                 type="button"
                 onClick={() => setSupportedPartyId(party.id)}
-                className="chip-button onboarding-chip"
+                className={`chip-button onboarding-chip ${
+                  party.name.length >= 12 ? "onboarding-chip--compact" : ""
+                }`}
                 style={{
-                  borderColor: isSelected ? "var(--color-brand-primary)" : "var(--color-border)",
-                  backgroundColor: isSelected ? "var(--color-brand-primary)" : "transparent",
-                  color: isSelected ? "#ffffff" : "var(--color-text-primary)",
+                  borderColor: isSelected ? dotColor : "var(--color-border)",
+                  backgroundColor: isSelected ? `${dotColor}14` : "#ffffff",
+                  color: isSelected
+                    ? "var(--color-text-primary)"
+                    : "var(--color-text-secondary)",
                 }}
               >
                 {hasDot && (
                   <span
                     className="dot"
-                    style={{ backgroundColor: isSelected ? "rgba(255,255,255,0.8)" : dotColor }}
+                    style={{ backgroundColor: dotColor }}
                   />
                 )}
                 {party.name}
@@ -232,7 +244,14 @@ export function OnboardingForm() {
             );
           })}
         </div>
-        <MascotImage pose="greeting" size={78} className="onboarding-step__mascot" />
+        <Image
+          src="/assets/mascot/mascot-question.png"
+          alt=""
+          width={88}
+          height={88}
+          className="onboarding-step__mascot"
+          aria-hidden="true"
+        />
       </section>
 
       <section className="onboarding-step onboarding-step--category">
@@ -271,6 +290,14 @@ export function OnboardingForm() {
             );
           })}
         </div>
+        <Image
+          src="/assets/mascot/mascot-idea.png"
+          alt=""
+          width={86}
+          height={86}
+          className="onboarding-step__mascot"
+          aria-hidden="true"
+        />
       </section>
 
       <div className="privacy-note">

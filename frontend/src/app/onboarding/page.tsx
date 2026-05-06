@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { OnboardingForm } from "@/features/onboarding/components/onboarding-form";
-import { MascotImage } from "@/components/ui/mascot-image";
 
 export const metadata: Metadata = {
   title: "はじめに | Kuni-Musubi",
@@ -14,7 +14,15 @@ export default function OnboardingPage() {
     <PageContainer className="onboarding-page">
       <div className="app-card onboarding-panel">
         <div className="onboarding-hero">
-          <MascotImage pose="greeting" size={106} className="hidden sm:block" />
+          <Image
+            src="/assets/mascot/mascot-default.png"
+            alt=""
+            width={118}
+            height={118}
+            className="hidden sm:block onboarding-hero__mascot"
+            aria-hidden="true"
+            priority
+          />
           <div className="onboarding-hero__text">
             <p className="eyebrow">
               <Sparkles size={15} />
@@ -26,7 +34,15 @@ export default function OnboardingPage() {
               すべてスキップ可能です。
             </p>
           </div>
-          <MascotImage pose="thumbsup" size={104} />
+          <Image
+            src="/assets/mascot/mascot-cheer.png"
+            alt=""
+            width={116}
+            height={116}
+            className="onboarding-hero__mascot"
+            aria-hidden="true"
+            priority
+          />
         </div>
 
         <OnboardingForm />

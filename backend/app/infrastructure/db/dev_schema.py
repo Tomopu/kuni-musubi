@@ -64,6 +64,26 @@ DEV_SCHEMA_STATEMENTS = [
     "ALTER TABLE article_categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now()",
     # onboarding_events
     "ALTER TABLE onboarding_events ADD COLUMN IF NOT EXISTS selected_party_status VARCHAR(20)",
+    # daily_article_stats
+    (
+        "ALTER TABLE daily_article_stats "
+        "ADD COLUMN IF NOT EXISTS unhelpful_click_count INTEGER DEFAULT 0"
+    ),
+    """
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_constraint
+            WHERE conname = 'daily_article_stats_article_id_stat_date_key'
+        ) THEN
+            ALTER TABLE daily_article_stats
+            ADD CONSTRAINT daily_article_stats_article_id_stat_date_key
+            UNIQUE (article_id, stat_date);
+        END IF;
+    END
+    $$;
+    """,
 ]
 
 DEV_SCHEMA_TABLES = [

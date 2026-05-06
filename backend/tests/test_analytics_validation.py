@@ -135,6 +135,7 @@ class TestPostArticleEvent:
             "card_click",
             "detail_view",
             "helpful_click",
+            "unhelpful_click",
             "source_click",
         ]
         for event_type in valid_types:

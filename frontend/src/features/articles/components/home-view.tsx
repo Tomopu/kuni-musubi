@@ -33,13 +33,12 @@ export function HomeView() {
 
   useEffect(() => {
     const partyId = getPreferences().supportedPartyId;
+    setSelectedPartyId(null);
     if (!partyId || ["none", "unknown", "other"].includes(partyId)) {
-      setSelectedPartyId(null);
       setHeroPartyName(null);
       setHeroPartyId(null);
       return;
     }
-    setSelectedPartyId(partyId);
     setHeroPartyId(partyId);
   }, []);
 
@@ -251,9 +250,16 @@ export function HomeView() {
             </div>
           )}
 
-          <div className="party-guide-banner">
+          <Link
+            href="/parties"
+            className="party-guide-banner party-guide-banner--link"
+            aria-label="各政党についての説明を見る"
+          >
             <Sparkles size={18} />
             <span>各政党についての説明を見る</span>
+            <span className="party-guide-banner__arrow" aria-hidden="true">
+              <ChevronRight size={18} />
+            </span>
             <Image
               src="/assets/mascot/mascot-search.png"
               alt="虫眼鏡を持ったKuni-Musubiキャラクター"
@@ -261,10 +267,7 @@ export function HomeView() {
               height={70}
               className="party-guide-banner__mascot"
             />
-            <Link href="/parties" aria-label="各政党についての説明を見る">
-              <ChevronRight size={18} />
-            </Link>
-          </div>
+          </Link>
         </>
       )}
     </div>

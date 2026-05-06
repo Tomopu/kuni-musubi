@@ -28,6 +28,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+function splitIdeologySummary(summary: string): string[] {
+  const normalized = summary
+    .split(/\n|。|、(?=「)|(?<=」)/)
+    .map((item) => item.replace(/^[・\s]+/, "").trim())
+    .filter(Boolean);
+  return normalized.length > 0 ? normalized : [summary];
+}
+
 export default async function PartyDetailPage({ params }: Props) {
   const { partyId } = await params;
   const party = await getPartyDetail(partyId).catch(() => notFound());
@@ -36,6 +44,9 @@ export default async function PartyDetailPage({ params }: Props) {
   const mainPolicyCategories = party.main_policy_categories ?? [];
   const latestArticles = party.latest_articles ?? [];
   const partyColor = party.color_hex ?? "var(--color-brand-primary)";
+  const ideologyItems = party.ideology_summary
+    ? splitIdeologySummary(party.ideology_summary)
+    : [];
 
   return (
     <PageContainer
@@ -112,7 +123,14 @@ export default async function PartyDetailPage({ params }: Props) {
         {party.ideology_summary && (
           <section className="detail-card">
             <h2>党の政治理念</h2>
-            <p>{party.ideology_summary}</p>
+            <ul className="ideology-list">
+              {ideologyItems.map((item) => (
+                <li key={item}>
+                  <Check size={17} />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

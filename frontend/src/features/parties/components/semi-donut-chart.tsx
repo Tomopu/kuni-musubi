@@ -89,7 +89,7 @@ export function SemiDonutChart({
   const MIN_LABEL_PCT = 5; // ラベルを表示する最小割合(%)
   const TOOLTIP_W = 136;
   const TOOLTIP_H = 44;
-  const titleY = flipped ? CY + 18 : CY - 66;
+  const titleY = flipped ? CY + 26 : CY - 58;
   const totalY = flipped ? CY + 50 : CY - 34;
   const seatsY = flipped ? CY + 64 : CY - 18;
 

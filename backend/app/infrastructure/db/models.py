@@ -12,6 +12,7 @@ from sqlalchemy import (
     String,
     Table,
     Text,
+    UniqueConstraint,
     func,
     text,
 )
@@ -221,6 +222,7 @@ class ArticleEvent(Base):
 
 class DailyArticleStat(Base):
     __tablename__ = "daily_article_stats"
+    __table_args__ = (UniqueConstraint("article_id", "stat_date"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -234,6 +236,7 @@ class DailyArticleStat(Base):
     detail_view_count: Mapped[int] = mapped_column(Integer, default=0)
     source_click_count: Mapped[int] = mapped_column(Integer, default=0)
     helpful_click_count: Mapped[int] = mapped_column(Integer, default=0)
+    unhelpful_click_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

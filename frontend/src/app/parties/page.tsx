@@ -101,7 +101,13 @@ export default async function PartiesPage() {
                   } as CSSProperties
                 }
               >
-                <span className="party-row__mark">{party.short_name}</span>
+                <span
+                  className={`party-row__mark ${
+                    party.short_name.length >= 3 ? "party-row__mark--compact" : ""
+                  }`}
+                >
+                  {party.short_name}
+                </span>
                 <span className="party-row__summary">
                   <span className="party-row__name">{party.name}</span>
                 </span>

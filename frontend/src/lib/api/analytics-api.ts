@@ -10,7 +10,12 @@ export type OnboardingEventPayload = {
 
 // 記事イベントのペイロード（backend スキーマに合わせる）
 export type ArticleEventPayload = {
-  event_type: "card_click" | "detail_view" | "helpful_click" | "source_click";
+  event_type:
+    | "card_click"
+    | "detail_view"
+    | "helpful_click"
+    | "unhelpful_click"
+    | "source_click";
   article_id: string;
   surface: "home" | "party_tab" | "party_detail" | "article_detail";
 };
