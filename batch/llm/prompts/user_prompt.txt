@@ -1,0 +1,45 @@
+以下の記事テキストを分析し、指定の JSON スキーマで出力してください。
+
+---
+出典URL: {source_url}
+出典名: {source_name}
+公開日: {published_at}
+---
+
+{article_text}
+
+---
+
+出力する JSON スキーマ:
+{{
+  "display_title": "string (300文字以内)",
+  "card_summary": "string (100文字程度)",
+  "related_parties": [
+    {{
+      "party_name": "string",
+      "party_short_name": "string",
+      "relation_type": "primary | mentioned | opposition_view"
+    }}
+  ],
+  "categories": ["string (カテゴリ候補から選ぶ、最大5個)"],
+  "positive_point": "string",
+  "life_impact": "string",
+  "remaining_issues": ["string"],
+  "public_reactions_summary": {{
+    "government_or_ruling_party_view": "string",
+    "opposition_view": "string",
+    "public_opinion_or_expert_view": "string"
+  }},
+  "source_summary": {{
+    "primary_source_url": "{source_url}",
+    "source_type": "party_official | government | local_government | news_media | other",
+    "source_name": "{source_name}",
+    "published_at": "{published_at}"
+  }},
+  "quality_flags": {{
+    "is_positive_news": true | false,
+    "is_solution_oriented": true | false,
+    "needs_human_review": true | false,
+    "risk_notes": ["string"]
+  }}
+}}

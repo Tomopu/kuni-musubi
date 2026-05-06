@@ -1,0 +1,33 @@
+# 政党ごとの RSS フィード設定
+# 新しい政党を追加する場合はこのファイルに追記する
+#
+# RSS URL の確認方法:
+#   1. 政党公式サイトをブラウザで開く
+#   2. ページのソースを開き type="application/rss+xml" または type="application/atom+xml" を検索する
+#   3. ニュースページに「RSS」アイコンがあればそのリンク先 URL を使う
+#
+# 動作確認コマンド（batch/ ディレクトリから）:
+#   PYTHONPATH=..:../backend uv run python -m batch.main --fetch-only
+
+feeds:
+  # 自由民主党
+  # 確認 URL: https://www.jimin.jp/aboutus/link_tool/?tab=rss
+  # ※ RSS URL は変更される場合があります。上記ページで最新 URL を確認してください。
+  - url: "http://rss.jimin.jp/f1887/index.rdf"
+    source_name: "自由民主党"
+    source_type: "party_official"
+    max_items: 10
+
+  # 立憲民主党
+  # ※ 公式 RSS が確認できませんでした。以下は仮 URL です。
+  # ※ https://cdp-japan.jp/ でニュース RSS を確認して更新してください。
+  - url: "https://cdp-japan.jp/news/rss"
+    source_name: "立憲民主党"
+    source_type: "party_official"
+    max_items: 10
+
+  # 公明党（動作確認済み）
+  - url: "https://www.komei.or.jp/komeinews/feed"
+    source_name: "公明党"
+    source_type: "party_official"
+    max_items: 10

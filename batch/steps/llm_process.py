@@ -1,56 +1,47 @@
 """LLM 処理ステップ。
 
-フェッチ済み記事テキストを Anthropic API に送り、ArticleLLMOutput を返す。
+フェッチ済み記事テキストを Gemini API に送り、ArticleLLMOutput を返す。
 """
 
 import json
 
-import httpx
+from google import genai
+from google.genai import types
 
 from batch.llm.prompts.article import SYSTEM_PROMPT, build_user_prompt
 from batch.llm.schemas.article import ArticleLLMOutput
 from batch.settings import settings
 from batch.steps.fetch import FetchResult
 
-_ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
-_ANTHROPIC_VERSION = "2023-06-01"
 
+def _call_gemini(user_prompt: str) -> str:
+    """Gemini API を呼び出してテキスト応答を返す。
 
-def _call_anthropic(user_prompt: str) -> str:
-    """Anthropic Messages API を呼び出してテキスト応答を返す。
-
-    1. リクエストボディを組み立てる
-    2. POST リクエストを送信する
-    3. content[0].text を返す
+    1. Gemini クライアントを初期化する
+    2. システム指示とユーザープロンプトでコンテンツを生成する
+    3. テキスト応答を返す
     """
-    if not settings.anthropic_api_key:
-        raise ValueError("ANTHROPIC_API_KEY が設定されていません")
+    if not settings.gemini_api_key:
+        raise ValueError("GEMINI_API_KEY が設定されていません")
 
-    payload = {
-        "model": settings.llm_model,
-        "max_tokens": 2048,
-        "system": SYSTEM_PROMPT,
-        "messages": [{"role": "user", "content": user_prompt}],
-    }
-    headers = {
-        "x-api-key": settings.anthropic_api_key,
-        "anthropic-version": _ANTHROPIC_VERSION,
-        "content-type": "application/json",
-    }
-
-    with httpx.Client(timeout=60) as client:
-        resp = client.post(_ANTHROPIC_API_URL, json=payload, headers=headers)
-        resp.raise_for_status()
-
-    data = resp.json()
-    return str(data["content"][0]["text"])
+    client = genai.Client(api_key=settings.gemini_api_key)
+    response = client.models.generate_content(
+        model=settings.llm_model,
+        contents=user_prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT,
+            max_output_tokens=2048,
+            temperature=0.2,
+        ),
+    )
+    return response.text or ""
 
 
 def process_article_with_llm(fetch_result: FetchResult) -> ArticleLLMOutput:
     """記事テキストを LLM で処理し、検証済みの ArticleLLMOutput を返す。
 
     1. ユーザープロンプトを組み立てる
-    2. Anthropic API を呼び出す
+    2. Gemini API を呼び出す
     3. JSON をパースして Pydantic で検証する
     4. ArticleLLMOutput を返す
     """
@@ -61,7 +52,7 @@ def process_article_with_llm(fetch_result: FetchResult) -> ArticleLLMOutput:
         published_at=fetch_result.published_at,
     )
 
-    raw_text = _call_anthropic(user_prompt)
+    raw_text = _call_gemini(user_prompt)
 
     # LLM がコードブロックで囲む場合があるので除去する
     # 例: ```json\n{...}\n``` → {...}
