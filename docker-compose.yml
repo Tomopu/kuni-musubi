@@ -23,7 +23,7 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://kuni_musubi:kuni_musubi@db:5432/kuni_musubi
-      CORS_ORIGINS: '["http://localhost:3000"]'
+      CORS_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000","http://192.168.3.229:3000"]'
       AUTO_SEED_DEMO_DATA: "true"
     depends_on:
       db:
@@ -46,7 +46,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_API_BASE_URL: http://192.168.3.229:8000
     depends_on:
       - backend
 

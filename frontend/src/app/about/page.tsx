@@ -63,7 +63,7 @@ export default function AboutPage() {
         >
           <div className="flex-1 min-w-0">
             <h1
-              className="text-xl font-bold mb-1.5"
+              className="text-xl font-medium mb-1.5"
               style={{ color: "var(--color-text-primary)" }}
             >
               このアプリについて
@@ -97,7 +97,7 @@ export default function AboutPage() {
                 </span>
                 <div>
                   <h2
-                    className="text-sm font-semibold mb-1"
+                    className="text-sm font-medium mb-1"
                     style={{ color: "var(--color-text-primary)" }}
                   >
                     {item.title}
@@ -119,7 +119,7 @@ export default function AboutPage() {
           className="mt-8 rounded-xl py-5 px-4 text-center"
           style={{ backgroundColor: "var(--color-brand-primary)" }}
         >
-          <p className="text-sm font-semibold" style={{ color: "#ffffff" }}>
+          <p className="text-sm font-medium" style={{ color: "#ffffff" }}>
             一緒に、より良い社会をつくっていきましょう！
           </p>
         </div>

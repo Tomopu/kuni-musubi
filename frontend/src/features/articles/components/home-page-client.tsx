@@ -151,7 +151,7 @@ export function HomePageClient() {
           className="rounded-xl p-6 mb-6 text-white"
           style={{ backgroundColor: heroPartyName ? heroColor : "#4CAF50" }}
         >
-          <p className="text-lg font-bold">
+          <p className="text-lg font-medium">
             {heroPartyName
               ? `${heroPartyName}のGood Newsをお届け`
               : "各政党のGood Newsをお届け"}

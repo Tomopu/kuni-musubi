@@ -10,6 +10,7 @@ export type PartyResponse = {
   house_of_representatives_seats: number | null;
   house_of_councillors_seats: number | null;
   total_seats: number;
+  main_policy_categories?: string[];
 };
 
 // 政党詳細レスポンス

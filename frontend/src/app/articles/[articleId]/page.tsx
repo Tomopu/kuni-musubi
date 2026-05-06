@@ -41,7 +41,7 @@ function SectionHeading({ children }: { children: ReactNode }) {
         aria-hidden="true"
       />
       <h2
-        className="text-base font-semibold leading-snug"
+        className="text-base font-medium leading-snug"
         style={{ color: "var(--color-text-primary)" }}
       >
         {children}
@@ -100,7 +100,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
       {/* タイトル */}
       <h1
-        className="text-xl font-bold leading-snug mb-6"
+        className="text-xl font-medium leading-snug mb-6"
         style={{ color: "var(--color-text-primary)" }}
       >
         {article.display_title}

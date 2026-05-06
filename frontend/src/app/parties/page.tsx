@@ -1,26 +1,48 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listParties, type PartyResponse } from "@/lib/api/parties-api";
+import { ChevronRight, Sparkles } from "lucide-react";
+import { MascotImage } from "@/components/ui/mascot-image";
 import { PageContainer } from "@/components/layout/page-container";
-import { SemiDonutChart, type ChartSegment } from "@/features/parties/components/semi-donut-chart";
+import { SeatOverview } from "@/features/parties/components/seat-overview";
+import type { ChartSegment } from "@/features/parties/components/semi-donut-chart";
+import { listParties, type PartyResponse } from "@/lib/api/parties-api";
 
 export const metadata: Metadata = {
   title: "政党一覧 | Kuni-Musubi",
 };
 
-// PartyResponse[] → ChartSegment[]（議席数 0 の政党は除外）
-function toSegments(parties: PartyResponse[], key: "house_of_representatives_seats" | "house_of_councillors_seats"): ChartSegment[] {
+const FALLBACK_POLICY_CATEGORIES_BY_NAME: Record<string, string[]> = {
+  自由民主党: ["安全保障", "経済成長", "憲法改正"],
+  日本維新の会: ["行財政改革", "難民等認定制度改革", "地方自治"],
+  国民民主党: ["税制・財政（減税）", "社会保障軽減", "憲法改正"],
+  中道改革連合: ["教育", "女性政策", "行政改革"],
+  立憲民主党: ["労働・雇用", "多様性尊重", "ジェンダー平等"],
+  参政党: ["教育", "食・健康", "国民負担軽減"],
+  公明党: ["子育て支援", "社会保障", "平和外交"],
+  チームみらい: ["テクノロジー政策", "教育", "行政DX"],
+  日本共産党: ["消費税減税", "社会保障", "平和外交"],
+  れいわ新選組: ["消費税廃止", "社会保障", "反緊縮"],
+  日本保守党: ["保守政策", "安全保障", "移民政策"],
+  社会民主党: ["福祉", "平和主義", "労働"],
+  "減税日本・ゆうこく連合": ["減税", "地方自治", "行政改革"],
+  無所属: ["地域政策", "個別政策", "議会活動"],
+};
+
+function toSegments(
+  parties: PartyResponse[],
+  seatKey: "house_of_representatives_seats" | "house_of_councillors_seats",
+): ChartSegment[] {
   return parties
-    .filter((p) => (p[key] ?? 0) > 0)
-    .map((p) => ({
-      id: p.id,
-      name: p.short_name ?? p.name,
-      color: p.color_hex ?? "#999999",
-      seats: p[key] ?? 0,
-    }));
+    .map((party) => ({
+      id: party.id,
+      name: party.short_name,
+      color: party.color_hex ?? "#999999",
+      seats: party[seatKey] ?? 0,
+    }))
+    .filter((party) => party.seats > 0);
 }
 
-// 政党一覧画面（Server Component）
 export default async function PartiesPage() {
   let parties: PartyResponse[];
   try {
@@ -29,91 +51,85 @@ export default async function PartiesPage() {
     parties = [];
   }
 
-  const totalHR = parties.reduce((sum, p) => sum + (p.house_of_representatives_seats ?? 0), 0);
-  const totalHC = parties.reduce((sum, p) => sum + (p.house_of_councillors_seats ?? 0), 0);
-
-  const hrSegments = toSegments(parties, "house_of_representatives_seats");
-  const hcSegments = toSegments(parties, "house_of_councillors_seats");
+  const representativeSegments = toSegments(parties, "house_of_representatives_seats");
+  const councillorSegments = toSegments(parties, "house_of_councillors_seats");
+  const totalRepresentatives = representativeSegments.reduce((sum, party) => sum + party.seats, 0);
+  const totalCouncillors = councillorSegments.reduce((sum, party) => sum + party.seats, 0);
 
   return (
-    <PageContainer className="py-6">
-      <h1
-        className="text-2xl font-bold mb-6"
-        style={{ color: "var(--color-text-primary)" }}
-      >
-        政党一覧
-      </h1>
+    <PageContainer className="parties-page">
+      <section className="parties-overview">
+        <div className="parties-overview__intro">
+          <h1>政党一覧</h1>
+          <p>2026年5月時点の衆議院・参議院の議席分布</p>
+        </div>
 
-      {/* 衆参議席半円グラフ */}
-      {(totalHR > 0 || totalHC > 0) && (
-        <section className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {totalHR > 0 && (
-            <SemiDonutChart title="衆議院" total={totalHR} segments={hrSegments} />
-          )}
-          {totalHC > 0 && (
-            <SemiDonutChart title="参議院" total={totalHC} segments={hcSegments} />
-          )}
-        </section>
-      )}
+        {(totalRepresentatives > 0 || totalCouncillors > 0) && (
+          <SeatOverview
+            parties={parties}
+            representativeSegments={representativeSegments}
+            councillorSegments={councillorSegments}
+            totalRepresentatives={totalRepresentatives}
+            totalCouncillors={totalCouncillors}
+          />
+        )}
 
-      {/* 政党リスト見出し */}
-      <p
-        className="text-xs font-medium mb-3"
-        style={{ color: "var(--color-text-secondary)" }}
-      >
-        詳しく知りたい方はこちら
-      </p>
+        <p className="parties-overview__note">
+          ※ 議席数は各党の公式発表や関連資料をもとに集計した参考値です。
+        </p>
+      </section>
 
-      {/* 政党リスト（縦並び） */}
-      <ul
-        className="border-t"
-        style={{ borderColor: "var(--color-border)" }}
-      >
-        {parties.map((party) => {
-          const hr = party.house_of_representatives_seats ?? 0;
-          const hc = party.house_of_councillors_seats ?? 0;
-          return (
-            <li
-              key={party.id}
-              className="border-b"
-              style={{ borderColor: "var(--color-border)" }}
-            >
+      <section className="party-list-section">
+        <h2>政党を選んで、詳しい情報を見てみよう</h2>
+        <div className="party-list">
+          {parties.map((party) => {
+            const representatives = party.house_of_representatives_seats ?? 0;
+            const councillors = party.house_of_councillors_seats ?? 0;
+            const categories =
+              party.main_policy_categories?.length
+                ? party.main_policy_categories.slice(0, 3)
+                : FALLBACK_POLICY_CATEGORIES_BY_NAME[party.name] ?? [];
+
+            return (
               <Link
+                key={party.id}
                 href={`/parties/${party.id}`}
-                className="flex items-center gap-3 py-3.5 transition-opacity duration-150 hover:opacity-70"
+                className="party-row"
+                style={
+                  {
+                    "--party-color": party.color_hex ?? "var(--color-brand-primary)",
+                  } as CSSProperties
+                }
               >
-                <span
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: party.color_hex ?? "#999999" }}
-                />
-                <span
-                  className="flex-1 font-medium text-sm"
-                  style={{ color: "var(--color-text-primary)" }}
-                >
-                  {party.name}
+                <span className="party-row__mark">{party.short_name}</span>
+                <span className="party-row__summary">
+                  <span className="party-row__name">{party.name}</span>
                 </span>
-                <span
-                  className="text-xs flex-shrink-0"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  衆{hr} 参{hc}
+                <span className="party-row__seats">
+                  <b>{party.total_seats}</b>
+                  <span>議席</span>
+                  <em>衆{representatives} / 参{councillors}</em>
                 </span>
-                <span
-                  className="text-xs flex-shrink-0"
-                  style={{ color: "var(--color-brand-primary)" }}
-                >
-                  詳細を見る &gt;
+                <span className="party-row__tags">
+                  {categories.map((category) => (
+                    <span key={category}>{category}</span>
+                  ))}
                 </span>
+                <ChevronRight className="party-row__arrow" size={20} />
               </Link>
-            </li>
-          );
-        })}
-      </ul>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="party-guide-banner">
+        <Sparkles size={18} />
+        <span>政党ごとの理念や政策をもっと詳しく見てみましょう！</span>
+        <MascotImage pose="search" size={74} />
+      </div>
 
       {parties.length === 0 && (
-        <p className="text-sm mt-4" style={{ color: "var(--color-text-secondary)" }}>
-          政党情報を読み込めませんでした
-        </p>
+        <p className="empty-state">政党情報を読み込めませんでした</p>
       )}
     </PageContainer>
   );

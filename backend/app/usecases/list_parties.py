@@ -20,6 +20,7 @@ def execute(db: Session) -> list[PartyResponse]:
             house_of_councillors_seats=p.house_of_councillors_seats,
             total_seats=(p.house_of_representatives_seats or 0)
             + (p.house_of_councillors_seats or 0),
+            main_policy_categories=p.main_policy_categories,
         )
         for p in parties
     ]

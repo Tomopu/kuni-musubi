@@ -1,57 +1,67 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import type { CSSProperties } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { getPreferences } from "@/lib/storage/preferences-storage";
+import Image from "next/image";
+import {
+  ChevronRight,
+  LayoutGrid,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react";
 import { listArticles, type ArticleCardResponse } from "@/lib/api/articles-api";
 import { listParties, type PartyResponse } from "@/lib/api/parties-api";
+import { getPreferences } from "@/lib/storage/preferences-storage";
 import { ArticleCard } from "@/features/articles/components/article-card";
-import { MascotImage } from "@/components/ui/mascot-image";
 
-// ホーム画面のビューコンポーネント（Client Component）
-// localStorage から設定を読み、ヒーローバナー・記事一覧・政党フィルターを表示する
 export function HomeView() {
   const [articles, setArticles] = useState<ArticleCardResponse[]>([]);
   const [parties, setParties] = useState<PartyResponse[]>([]);
-  const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null);
+  const [selectedPartyId, setSelectedPartyId] = useState<string | null | undefined>(undefined);
   const [heroPartyName, setHeroPartyName] = useState<string | null>(null);
   const [heroPartyId, setHeroPartyId] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // 1. 政党一覧を取得する
   useEffect(() => {
     listParties()
       .then(setParties)
       .catch(() => setParties([]));
   }, []);
 
-  // 2. DB 由来の政党一覧から支持政党名・IDを解決する
   useEffect(() => {
-    const prefs = getPreferences();
-    const partyId = prefs.supportedPartyId;
-    if (!partyId || partyId === "none" || partyId === "unknown" || partyId === "other") {
+    const partyId = getPreferences().supportedPartyId;
+    if (!partyId || ["none", "unknown", "other"].includes(partyId)) {
+      setSelectedPartyId(null);
       setHeroPartyName(null);
       setHeroPartyId(null);
       return;
     }
-    const party = parties.find((p) => p.id === partyId);
-    setHeroPartyName(party?.name ?? null);
+    setSelectedPartyId(partyId);
     setHeroPartyId(partyId);
-  }, [parties]);
+  }, []);
 
-  // 3. 記事一覧を取得する
+  useEffect(() => {
+    if (!heroPartyId) {
+      setHeroPartyName(null);
+      return;
+    }
+    if (parties.length === 0) return;
+    const party = parties.find((p) => p.id === heroPartyId);
+    setHeroPartyName(party?.name ?? null);
+  }, [heroPartyId, parties]);
+
   const fetchArticles = useCallback(
     async (partyId: string | null, cursor?: string) => {
       try {
-        const res = await listArticles({
+        return await listArticles({
           ...(partyId ? { party_id: partyId } : {}),
           sort: "latest",
           limit: "12",
           ...(cursor ? { cursor } : {}),
         });
-        return res;
       } catch {
         return { items: [], next_cursor: null };
       }
@@ -59,8 +69,8 @@ export function HomeView() {
     [],
   );
 
-  // 4. タブ切り替え時に記事を再取得する
   useEffect(() => {
+    if (selectedPartyId === undefined) return;
     setLoading(true);
     fetchArticles(selectedPartyId).then((res) => {
       setArticles(res.items);
@@ -69,9 +79,8 @@ export function HomeView() {
     });
   }, [selectedPartyId, fetchArticles]);
 
-  // 5. 追加読み込みを行う
   const handleLoadMore = async () => {
-    if (!nextCursor || loadingMore) return;
+    if (!nextCursor || loadingMore || selectedPartyId === undefined) return;
     setLoadingMore(true);
     const res = await fetchArticles(selectedPartyId, nextCursor);
     setArticles((prev) => [...prev, ...res.items]);
@@ -81,104 +90,102 @@ export function HomeView() {
 
   const hasSelectedParty = heroPartyName !== null;
   const heroParty = heroPartyId ? parties.find((p) => p.id === heroPartyId) : null;
-  const heroPartyColor = heroParty?.color_hex ?? "#4caf50";
+  const heroPartyColor = heroParty?.color_hex ?? "#e60012";
+  const heroPartyDetailHref = heroPartyId ? `/parties/${heroPartyId}` : "/parties";
   const selectedPartyName = parties.find((p) => p.id === selectedPartyId)?.name;
   const articleSectionTitle = selectedPartyName
     ? `${selectedPartyName}のニュース`
     : "すべてのニュース";
 
-  // ヒーローの背景スタイル
-  const heroBgStyle = hasSelectedParty
-    ? { background: `linear-gradient(135deg, ${heroPartyColor} 0%, ${heroPartyColor}cc 100%)` }
-    : { backgroundColor: "#FFF9E6" };
-
   return (
-    <div>
-      {/* ヒーローバナー */}
-      <div className="rounded-2xl overflow-hidden mb-6" style={heroBgStyle}>
-        <div className="px-5 py-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
+    <div className="home-page">
+      <section
+        className={`home-hero ${hasSelectedParty ? "home-hero--selected" : "home-hero--unset"}`}
+        style={
+          hasSelectedParty
+            ? ({ "--party-color": heroPartyColor } as CSSProperties)
+            : undefined
+        }
+      >
+        <div className="home-hero__content">
+          <div className="home-hero__copy">
             {hasSelectedParty ? (
-              /* 支持政党あり: 政党名 + Good News */
               <>
-                <p
-                  className="text-sm font-medium mb-0.5"
-                  style={{ color: "rgba(255,255,255,0.85)" }}
-                >
+                <span className="home-hero__badge">あなたの支持政党</span>
+                <h1>
                   {heroPartyName}の
-                </p>
-                <p className="text-2xl font-bold mb-2" style={{ color: "#ffffff" }}>
+                  <br />
                   Good News
+                </h1>
+                <p>
+                  あなたの関心テーマに基づき、最新のポジティブな動きをお届けします。
                 </p>
-                <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>
-                  あなたに合った情報をお届けします
-                </p>
-                <Link
-                  href="/parties"
-                  className="text-xs underline transition-opacity duration-150 hover:opacity-80"
-                  style={{ color: "rgba(255,255,255,0.9)" }}
-                >
-                  各政党の詳細を見る &gt;
+                <Link href={heroPartyDetailHref} className="home-hero__link">
+                  詳しく見る
+                  <ChevronRight size={16} />
                 </Link>
               </>
             ) : (
-              /* 政党未設定: 全政党 Good News */
               <>
-                <p
-                  className="text-sm font-medium mb-0.5"
-                  style={{ color: "var(--color-brand-primary)" }}
-                >
+                <h1>
                   各政党の
-                </p>
-                <p
-                  className="text-xl font-bold mb-2"
-                  style={{ color: "var(--color-text-primary)" }}
-                >
+                  <br />
                   Good News をお届けします
-                </p>
-                <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
-                  あなたの関心テーマに合わせて表示をカスタマイズできます
+                </h1>
+                <p>
+                  あなたの関心テーマに合わせて、前向きなニュースをピックアップします。
                 </p>
               </>
             )}
           </div>
 
-          {/* マスコットキャラクター */}
-          <MascotImage pose="greeting" size={72} />
+          <div className="home-hero__visual">
+            <Image
+              src="/assets/mascot/mascot-announce.png"
+              alt="メガホンを持ったKuni-Musubiキャラクター"
+              width={170}
+              height={170}
+              className="home-hero__mascot"
+              priority
+            />
+            {!hasSelectedParty && (
+              <Image
+                src="/assets/decorations/deco-paperplane.png"
+                alt=""
+                width={82}
+                height={82}
+                className="home-hero__paperplane"
+                aria-hidden="true"
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* 政党フィルターチップ */}
-      <div className="mb-6">
-        <p
-          className="text-xs font-medium mb-2"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          政党を選ぶ
-        </p>
-        <div
-          className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4"
-          style={{ scrollbarWidth: "none" }}
-        >
-          {/* すべて */}
+      <section className="party-filter">
+        <p className="party-filter__label">政党を選ぶ</p>
+        <div className="party-filter__chips">
           <button
             type="button"
             onClick={() => setSelectedPartyId(null)}
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm border transition-colors duration-150"
+            className="chip-button party-chip"
             style={{
               borderColor:
                 selectedPartyId === null
                   ? "var(--color-brand-primary)"
                   : "var(--color-border)",
               backgroundColor:
-                selectedPartyId === null ? "var(--color-brand-primary)" : "transparent",
-              color: selectedPartyId === null ? "#ffffff" : "var(--color-text-secondary)",
+                selectedPartyId === null ? "var(--color-soft-green)" : "#ffffff",
+              color:
+                selectedPartyId === null
+                  ? "var(--color-brand-deep)"
+                  : "var(--color-text-secondary)",
             }}
           >
+            <LayoutGrid size={14} />
             すべて
           </button>
 
-          {/* 各政党チップ: 色ドット + 略称 */}
           {parties.map((party) => {
             const isActive = selectedPartyId === party.id;
             return (
@@ -186,20 +193,18 @@ export function HomeView() {
                 key={party.id}
                 type="button"
                 onClick={() => setSelectedPartyId(party.id)}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors duration-150"
+                className="chip-button party-chip"
                 style={{
                   borderColor: isActive
                     ? (party.color_hex ?? "var(--color-brand-primary)")
                     : "var(--color-border)",
                   backgroundColor:
-                    isActive && party.color_hex ? `${party.color_hex}18` : "transparent",
-                  color: isActive
-                    ? "var(--color-text-primary)"
-                    : "var(--color-text-secondary)",
+                    isActive && party.color_hex ? `${party.color_hex}14` : "#ffffff",
+                  color: isActive ? "var(--color-text-primary)" : "var(--color-text-secondary)",
                 }}
               >
                 <span
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  className="dot"
                   style={{ backgroundColor: party.color_hex ?? "#999999" }}
                 />
                 {party.short_name}
@@ -207,65 +212,57 @@ export function HomeView() {
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* 記事グリッドヘッダー */}
-      <div className="flex items-center justify-between mb-3">
-        <h2
-          className="text-base font-semibold"
-          style={{ color: "var(--color-text-primary)" }}
-        >
+      <div className="content-section-head">
+        <h2>
+          <Sparkles size={18} />
           {articleSectionTitle}
         </h2>
+        <button type="button" className="sort-pill">
+          <SlidersHorizontal size={14} />
+          新しい順
+        </button>
       </div>
 
-      {/* 記事グリッド */}
       {loading ? (
-        <div
-          className="text-center py-12 text-sm"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          読み込み中...
-        </div>
+        <div className="empty-state">読み込み中...</div>
       ) : articles.length === 0 ? (
-        <div
-          className="text-center py-12 text-sm"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          記事が見つかりませんでした
-        </div>
+        <div className="empty-state">記事が見つかりませんでした</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="article-grid content-fade">
             {articles.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}
           </div>
 
           {nextCursor && (
-            <div className="text-center mt-8">
+            <div className="load-more-wrap">
               <button
                 type="button"
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="px-6 py-2.5 rounded-full text-sm border transition-colors duration-150 disabled:opacity-50"
-                style={{
-                  borderColor: "var(--color-border)",
-                  color: "var(--color-text-secondary)",
-                }}
+                className="load-more-button"
               >
-                {loadingMore ? "読み込み中..." : "もっと読む"}
+                {loadingMore ? "読み込み中..." : "もっと見る"}
+                <ChevronRight size={16} />
               </button>
             </div>
           )}
 
-          <div className="text-center mt-6">
-            <Link
-              href="/parties"
-              className="text-sm transition-opacity duration-150 hover:opacity-70"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              各政党についての説明を見る &gt;
+          <div className="party-guide-banner">
+            <Sparkles size={18} />
+            <span>各政党についての説明を見る</span>
+            <Image
+              src="/assets/mascot/mascot-search.png"
+              alt="虫眼鏡を持ったKuni-Musubiキャラクター"
+              width={70}
+              height={70}
+              className="party-guide-banner__mascot"
+            />
+            <Link href="/parties" aria-label="各政党についての説明を見る">
+              <ChevronRight size={18} />
             </Link>
           </div>
         </>

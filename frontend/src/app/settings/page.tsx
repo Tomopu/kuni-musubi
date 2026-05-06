@@ -16,7 +16,7 @@ export default function SettingsPage() {
         <div className="flex items-start justify-between gap-4 mb-8">
           <div>
             <h1
-              className="text-2xl font-bold mb-1"
+              className="text-2xl font-medium mb-1"
               style={{ color: "var(--color-text-primary)" }}
             >
               設定

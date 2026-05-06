@@ -13,7 +13,40 @@ import {
   PARTY_OPTIONS,
   CATEGORY_OPTIONS,
 } from "@/lib/constants/parties";
-import { getPartyColor } from "@/lib/constants/party-colors";
+import { listParties, type PartyResponse } from "@/lib/api/parties-api";
+
+type PartySelectOption = {
+  id: string;
+  name: string;
+  shortName: string;
+  colorHex: string | null;
+};
+
+const DEFAULT_PARTY_OPTIONS: PartySelectOption[] = [
+  { id: "none", name: "特になし", shortName: "なし", colorHex: "#999999" },
+  { id: "unknown", name: "わからない", shortName: "?", colorHex: "#999999" },
+];
+
+function toPartyOptions(parties: PartyResponse[]): PartySelectOption[] {
+  return [
+    ...DEFAULT_PARTY_OPTIONS,
+    ...parties.map((party) => ({
+      id: party.id,
+      name: party.name,
+      shortName: party.short_name,
+      colorHex: party.color_hex,
+    })),
+  ];
+}
+
+function fallbackPartyOptions(): PartySelectOption[] {
+  return PARTY_OPTIONS.map((party) => ({
+    id: party.id,
+    name: party.name,
+    shortName: party.shortName,
+    colorHex: null,
+  }));
+}
 
 // 設定フォームコンポーネント（Client Component）
 // 現在の設定値が選択済み状態で表示され、変更は即時 localStorage に保存される
@@ -22,6 +55,7 @@ export function SettingsForm() {
   const [ageGroup, setAgeGroup] = useState<string | null>(null);
   const [supportedPartyId, setSupportedPartyId] = useState<string | null>(null);
   const [interestedCategoryIds, setInterestedCategoryIds] = useState<string[]>([]);
+  const [partyOptions, setPartyOptions] = useState<PartySelectOption[]>(fallbackPartyOptions);
 
   // 1. 初期値を localStorage から読み込む
   useEffect(() => {
@@ -29,6 +63,21 @@ export function SettingsForm() {
     setAgeGroup(prefs.ageGroup);
     setSupportedPartyId(prefs.supportedPartyId);
     setInterestedCategoryIds(prefs.interestedCategoryIds);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void listParties()
+      .then((parties) => {
+        if (!cancelled) setPartyOptions(toPartyOptions(parties));
+      })
+      .catch(() => {
+        if (!cancelled) setPartyOptions(fallbackPartyOptions());
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // 2. 年代を変更する（即時保存）
@@ -71,7 +120,7 @@ export function SettingsForm() {
       {/* 年代を変更 */}
       <section>
         <h2
-          className="text-base font-semibold mb-0.5"
+          className="text-base font-medium mb-0.5"
           style={{ color: "var(--color-text-primary)" }}
         >
           年代を変更
@@ -113,7 +162,7 @@ export function SettingsForm() {
       {/* 支持政党を変更 */}
       <section>
         <h2
-          className="text-base font-semibold mb-0.5"
+          className="text-base font-medium mb-0.5"
           style={{ color: "var(--color-text-primary)" }}
         >
           支持政党を変更
@@ -125,10 +174,10 @@ export function SettingsForm() {
           支持政党の Good News がホームに表示されます（任意）
         </p>
         <div className="flex flex-wrap gap-2">
-          {PARTY_OPTIONS.map((party) => {
+          {partyOptions.map((party) => {
             const isSelected = supportedPartyId === party.id;
-            const dotColor = getPartyColor(party.id);
-            const hasDot = party.id !== "none" && party.id !== "unknown" && party.id !== "other";
+            const dotColor = party.colorHex ?? "#999999";
+            const hasDot = party.id !== "none" && party.id !== "unknown";
             return (
               <button
                 key={party.id}
@@ -157,7 +206,7 @@ export function SettingsForm() {
       {/* 関心テーマを変更 */}
       <section>
         <h2
-          className="text-base font-semibold mb-0.5"
+          className="text-base font-medium mb-0.5"
           style={{ color: "var(--color-text-primary)" }}
         >
           関心テーマを変更

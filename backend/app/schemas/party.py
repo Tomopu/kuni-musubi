@@ -14,6 +14,7 @@ class PartyResponse(BaseModel):
     house_of_representatives_seats: Optional[int] = None
     house_of_councillors_seats: Optional[int] = None
     total_seats: int = 0
+    main_policy_categories: list[str] = Field(default_factory=list)
 
 
 class PartyDetailResponse(PartyResponse):

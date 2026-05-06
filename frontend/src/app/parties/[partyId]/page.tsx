@@ -1,9 +1,18 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPartyDetail } from "@/lib/api/parties-api";
+import {
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  ExternalLink,
+  Landmark,
+} from "lucide-react";
+import { MascotImage } from "@/components/ui/mascot-image";
 import { PageContainer } from "@/components/layout/page-container";
 import { ArticleCard } from "@/features/articles/components/article-card";
+import { getPartyDetail } from "@/lib/api/parties-api";
 
 type Props = {
   params: Promise<{ partyId: string }>;
@@ -19,266 +28,128 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-// 政党詳細画面（Server Component）
 export default async function PartyDetailPage({ params }: Props) {
   const { partyId } = await params;
   const party = await getPartyDetail(partyId).catch(() => notFound());
 
-  const totalSeats = party.total_seats;
   const manifestoPromises = party.manifesto_promises ?? [];
   const mainPolicyCategories = party.main_policy_categories ?? [];
   const latestArticles = party.latest_articles ?? [];
-
-  // 3 列議席カードのデータ
-  const seatInfo = [
-    { label: "議員数", value: totalSeats },
-    { label: "衆議院議席数", value: party.house_of_representatives_seats ?? 0 },
-    { label: "参議院議席数", value: party.house_of_councillors_seats ?? 0 },
-  ];
-
-  // 基本情報のデータ
-  const partyMeta = [
-    { label: "政党名", value: party.name },
-    { label: "代表者", value: party.leader_name },
-    { label: "成立年", value: party.founded_year ? `${party.founded_year}年` : null },
-  ].filter((item) => item.value != null);
+  const partyColor = party.color_hex ?? "var(--color-brand-primary)";
 
   return (
-    <PageContainer className="py-6">
-      {/* 戻るリンク */}
-      <Link
-        href="/parties"
-        className="inline-flex items-center gap-1 text-sm mb-4 transition-opacity duration-150 hover:opacity-70"
-        style={{ color: "var(--color-text-secondary)" }}
-      >
-        &lt; 政党一覧へ
+    <PageContainer
+      className="party-detail-page"
+      style={{ "--party-color": partyColor } as CSSProperties}
+    >
+      <Link href="/parties" className="back-link">
+        <ArrowLeft size={20} />
+        政党一覧へ
       </Link>
 
-      {/* 政党ヘッダー */}
-      <div
-        className="mb-5"
-        style={{ borderLeft: `4px solid ${party.color_hex ?? "var(--color-brand-primary)"}`, paddingLeft: "0.75rem" }}
-      >
-        <div className="flex items-center gap-2 mb-0.5">
-          <span
-            className="text-xs font-bold px-1.5 py-0.5 rounded text-white"
-            style={{ backgroundColor: "#E53935" }}
-          >
-            最新
-          </span>
-          <h1
-            className="text-2xl font-bold leading-snug"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            {party.name}
-          </h1>
-        </div>
-        <p
-          className="text-sm"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          {party.short_name}
-        </p>
-      </div>
-
-      {/* 議席カード（3列） */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
-        {seatInfo.map(({ label, value }) => (
-          <div
-            key={label}
-            className="rounded-lg p-3 text-center"
-            style={{ backgroundColor: "var(--color-bg-surface)" }}
-          >
-            <p
-              className="text-xs mb-1"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              {label}
-            </p>
-            <p
-              className="text-2xl font-bold leading-none"
-              style={{
-                color:
-                  label === "議員数"
-                    ? (party.color_hex ?? "var(--color-brand-primary)")
-                    : "var(--color-text-primary)",
-              }}
-            >
-              {value}
-            </p>
-            <p
-              className="text-xs mt-0.5"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              議席
-            </p>
+      <section className="party-detail-hero">
+        <div className="party-detail-hero__title">
+          <span className="party-detail-hero__badge">{party.short_name}</span>
+          <div>
+            <h1>{party.name}</h1>
+            <p>{party.short_name}</p>
           </div>
-        ))}
-      </div>
-
-      {/* 基本情報 */}
-      {partyMeta.length > 0 && (
-        <div
-          className="grid gap-3 mb-6 sm:grid-cols-3"
-        >
-          {partyMeta.map(({ label, value }) => (
-            <div
-              key={label}
-              className="rounded-lg p-3"
-              style={{ backgroundColor: "var(--color-bg-surface)" }}
-            >
-              <p
-                className="text-xs mb-0.5"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                {label}
-              </p>
-              <p
-                className="text-sm font-medium"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                {value}
-              </p>
-            </div>
-          ))}
         </div>
-      )}
+        <div className="party-detail-hero__visual">
+          <Landmark size={96} strokeWidth={1.4} />
+          <MascotImage pose="important" size={76} />
+        </div>
+      </section>
 
-      {/* 政治理念 */}
-      {party.ideology_summary && (
-        <section className="mb-6">
-          <h2
-            className="text-base font-semibold mb-2"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            党の政治理念
-          </h2>
-          <p
-            className="text-sm leading-relaxed"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            {party.ideology_summary}
-          </p>
-        </section>
-      )}
+      <section className="party-metrics">
+        <div>
+          <span>代表者（党首）</span>
+          <strong>{party.leader_name ?? "未確認"}</strong>
+        </div>
+        <div>
+          <span>党成立年</span>
+          <strong>{party.founded_year ? `${party.founded_year}年` : "未確認"}</strong>
+        </div>
+        <div>
+          <span>所属議員数</span>
+          <strong>{party.total_seats}名</strong>
+        </div>
+        <div>
+          <span>衆議院議席数</span>
+          <strong>{party.house_of_representatives_seats ?? 0}議席</strong>
+        </div>
+        <div>
+          <span>参議院議席数</span>
+          <strong>{party.house_of_councillors_seats ?? 0}議席</strong>
+        </div>
+        {party.official_url && (
+          <a href={party.official_url} target="_blank" rel="noopener noreferrer">
+            <span>公式サイト</span>
+            <strong>
+              公式サイトへ
+              <ExternalLink size={16} />
+            </strong>
+          </a>
+        )}
+      </section>
 
-      {/* 主要公約 */}
       {(manifestoPromises.length > 0 || party.manifesto_summary) && (
-        <section className="mb-6">
-          <h2
-            className="text-base font-semibold mb-2"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            主要政策・公約
-          </h2>
+        <section className="detail-card detail-card--manifesto">
+          <h2>主な公約</h2>
           {manifestoPromises.length > 0 ? (
-            <ul className="space-y-2">
+            <ol className="manifesto-list">
               {manifestoPromises.map((promise) => (
-                <li
-                  key={promise}
-                  className="text-sm leading-relaxed pl-3 border-l-2"
-                  style={{
-                    borderColor: party.color_hex ?? "var(--color-border)",
-                    color: "var(--color-text-secondary)",
-                  }}
-                >
-                  {promise}
-                </li>
+                <li key={promise}>{promise}</li>
               ))}
-            </ul>
+            </ol>
           ) : (
-            <p
-              className="text-sm leading-relaxed whitespace-pre-line"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              {party.manifesto_summary}
-            </p>
+            <p>{party.manifesto_summary}</p>
           )}
         </section>
       )}
 
-      {/* 主な政策カテゴリ */}
-      {mainPolicyCategories.length > 0 && (
-        <section className="mb-6">
-          <h2
-            className="text-base font-semibold mb-2"
-            style={{ color: "var(--color-text-primary)" }}
-          >
-            主な政策カテゴリ
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {mainPolicyCategories.map((category) => (
-              <span
-                key={category}
-                className="rounded-full px-3 py-1 text-xs"
-                style={{
-                  backgroundColor: "var(--color-bg-surface)",
-                  color: "var(--color-text-secondary)",
-                }}
-              >
-                {category}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
+      <div className="party-detail-grid">
+        {party.ideology_summary && (
+          <section className="detail-card">
+            <h2>党の政治理念</h2>
+            <p>{party.ideology_summary}</p>
+          </section>
+        )}
 
-      {/* 公式サイトリンク */}
-      {party.official_url && (
-        <div className="mb-6">
-          <p
-            className="text-xs mb-1"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            公式サイトURL
-          </p>
-          <a
-            href={party.official_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm underline transition-opacity duration-150 hover:opacity-70"
-            style={{ color: "var(--color-brand-primary)" }}
-          >
-            公式サイトを見る &gt;
-          </a>
-        </div>
-      )}
+        {mainPolicyCategories.length > 0 && (
+          <section className="detail-card">
+            <h2>主な政策タグ</h2>
+            <div className="policy-tags">
+              {mainPolicyCategories.map((category) => (
+                <span key={category}>{category}</span>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
 
-      {/* 最新ニュース（横スクロール） */}
       {latestArticles.length > 0 && (
-        <section
-          className="pt-6 border-t"
-          style={{ borderColor: "var(--color-border)" }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2
-              className="text-base font-semibold"
-              style={{ color: "var(--color-text-primary)" }}
-            >
-              最新ニュース
-            </h2>
-            <Link
-              href={`/?party=${party.id}`}
-              className="text-sm transition-opacity duration-150 hover:opacity-70"
-              style={{ color: "var(--color-brand-primary)" }}
-            >
-              もっと見る &gt;
+        <section className="related-news">
+          <div className="related-news__head">
+            <h2>関連ニュース</h2>
+            <Link href={`/?party=${party.id}`}>
+              もっと見る
+              <ChevronRight size={16} />
             </Link>
           </div>
-
-          {/* 横スクロールカード */}
-          <div
-            className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-2"
-            style={{ scrollbarWidth: "none" }}
-          >
+          <div className="article-grid article-grid--related">
             {latestArticles.map((article) => (
-              <div key={article.id} className="flex-shrink-0 w-60">
-                <ArticleCard article={article} />
-              </div>
+              <ArticleCard key={article.id} article={article} />
             ))}
           </div>
         </section>
       )}
+
+      <div className="party-news-note">
+        <MascotImage pose="greeting" size={58} />
+        <span>この政党のニュースは、ホーム画面の「{party.short_name}」タブでも見られます！</span>
+        <Check size={18} />
+      </div>
     </PageContainer>
   );
 }
