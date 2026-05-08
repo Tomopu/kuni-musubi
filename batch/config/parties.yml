@@ -1,33 +1,128 @@
-# 政党ごとの RSS フィード設定
-# 新しい政党を追加する場合はこのファイルに追記する
+# 政党ごとの取得設定
+# verify_feeds.py による RSS 検証結果をマージ済み
 #
-# RSS URL の確認方法:
-#   1. 政党公式サイトをブラウザで開く
-#   2. ページのソースを開き type="application/rss+xml" または type="application/atom+xml" を検索する
-#   3. ニュースページに「RSS」アイコンがあればそのリンク先 URL を使う
+# type フィールド:
+#   rss        - RSS/Atom フィードを直接取得する
+#   html_index - ニュース一覧 HTML から記事リンクを抽出する（RSS 廃止/非公開の場合）
+#
+# html_index タイプの設定項目:
+#   site_url      - スクレイプ対象のニュース一覧 URL
+#   base_url      - 相対パスの URL を絶対 URL に変換するベース
+#   link_selector - 記事リンクを抽出する CSS セレクタ（手動設定が必要）
 #
 # 動作確認コマンド（batch/ ディレクトリから）:
 #   PYTHONPATH=..:../backend uv run python -m batch.main --fetch-only
 
 feeds:
-  # 自由民主党
-  # 確認 URL: https://www.jimin.jp/aboutus/link_tool/?tab=rss
-  # ※ RSS URL は変更される場合があります。上記ページで最新 URL を確認してください。
-  - url: "http://rss.jimin.jp/f1887/index.rdf"
-    source_name: "自由民主党"
+  # 自由民主党（RSS 確認済み）
+  # RSS URL 確認ページ: https://www.jimin.jp/aboutus/link_tool/?tab=rss
+  - source_name: "自由民主党"
     source_type: "party_official"
     max_items: 10
+    type: "rss"
+    url: "http://rss.jimin.jp/f1887/index.rdf"
+    site_url: "https://www.jimin.jp/"
 
-  # 立憲民主党
-  # ※ 公式 RSS が確認できませんでした。以下は仮 URL です。
-  # ※ https://cdp-japan.jp/ でニュース RSS を確認して更新してください。
-  - url: "https://cdp-japan.jp/news/rss"
-    source_name: "立憲民主党"
+  # 立憲民主党（RSS 確認済み）
+  - source_name: "立憲民主党"
     source_type: "party_official"
     max_items: 10
+    type: "rss"
+    url: "https://cdp-japan.jp/news/feed"
+    site_url: "https://cdp-japan.jp/"
 
-  # 公明党（動作確認済み）
-  - url: "https://www.komei.or.jp/komeinews/feed"
-    source_name: "公明党"
+  # 国民民主党（RSS 確認済み）
+  - source_name: "国民民主党"
     source_type: "party_official"
     max_items: 10
+    type: "rss"
+    url: "https://new-kokumin.jp/rss"
+    site_url: "https://new-kokumin.jp/"
+
+  # 公明党（RSS 確認済み）
+  - source_name: "公明党"
+    source_type: "party_official"
+    max_items: 10
+    type: "rss"
+    url: "https://www.komei.or.jp/komeinews/feed"
+    site_url: "https://www.komei.or.jp/"
+
+  # 日本維新の会（RSS 非公開 → HTML 一覧から取得）
+  # 記事 URL パターン: /news/YYYY/MM/DD/NNNNN.html
+  # link_selector: 年付き URL のみ抽出してグローバルメニューを除外
+  - source_name: "日本維新の会"
+    source_type: "party_official"
+    max_items: 10
+    type: "html_index"
+    site_url: "https://o-ishin.jp/news/"
+    base_url: "https://o-ishin.jp"
+    link_selector: "a[href*='/news/20']"
+
+  # 参政党（RSS 確認済み）
+  - source_name: "参政党"
+    source_type: "party_official"
+    max_items: 10
+    type: "rss"
+    url: "https://www.sanseito.jp/feed/"
+    site_url: "https://www.sanseito.jp/"
+
+  # 日本共産党（RSS 確認済み）
+  - source_name: "日本共産党"
+    source_type: "party_official"
+    max_items: 10
+    type: "rss"
+    url: "https://www.jcp.or.jp/rss"
+    site_url: "https://www.jcp.or.jp/"
+
+  # れいわ新選組（RSS 確認済み）
+  - source_name: "れいわ新選組"
+    source_type: "party_official"
+    max_items: 10
+    type: "rss"
+    url: "https://reiwa-shinsengumi.com/feed/"
+    site_url: "https://reiwa-shinsengumi.com/"
+
+  # 日本保守党（RSS 確認済み）
+  - source_name: "日本保守党"
+    source_type: "party_official"
+    max_items: 10
+    type: "rss"
+    url: "https://hoshuto.jp/feed/"
+    site_url: "https://hoshuto.jp/"
+
+  # 社会民主党（RSS 確認済み）
+  - source_name: "社会民主党"
+    source_type: "party_official"
+    max_items: 10
+    type: "rss"
+    url: "https://sdp.or.jp/feed/"
+    site_url: "https://sdp.or.jp/"
+
+  # チームみらい（RSS 非公開 → HTML 一覧から取得）
+  # 公式: https://team-mir.ai/（旧 team-mirai.jp は保険代理店のため不使用）
+  # link_selector: 仮置き（--fetch-only で確認後に要調整）
+  - source_name: "チームみらい"
+    source_type: "party_official"
+    max_items: 10
+    type: "html_index"
+    site_url: "https://team-mir.ai/news/all"
+    base_url: "https://team-mir.ai"
+    link_selector: ".news-list a, .post-title a, a[href*='/news/']"
+
+  # 中道改革連合
+  # link_selector: 仮置き（--fetch-only で確認後に要調整）
+  - source_name: "中道改革連合"
+    source_type: "party_official"
+    max_items: 10
+    type: "html_index"
+    site_url: "https://craj.jp"
+    base_url: "https://craj.jp"
+    link_selector: ".news-list a, .p-news-list__item a"
+
+  # 減税日本・ゆうこく連合（RSS 確認済み）
+  - source_name: "減税日本・ゆうこく連合"
+    source_type: "party_official"
+    max_items: 10
+    type: "rss"
+    url: "http://genzeiyukoku.jp/feed/"
+    site_url: "http://genzeiyukoku.jp/"

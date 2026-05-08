@@ -1,0 +1,47 @@
+# 政党ごとの公式サイト取得設定。verify_feeds.py により生成。
+parties:
+- name: 自由民主党
+  type: rss
+  url: http://rss.jimin.jp/f1887/index.rdf
+- name: 立憲民主党
+  type: rss
+  url: https://cdp-japan.jp/news/feed
+- name: 国民民主党
+  type: rss
+  url: https://new-kokumin.jp/rss
+- name: 公明党
+  type: rss
+  url: https://www.komei.or.jp/news/rss
+- name: 日本維新の会
+  type: html_index
+  url: https://o-ishin.jp/
+  base_url: https://o-ishin.jp
+  link_selector: 'TODO: 記事リンクのCSSセレクタ'
+- name: 参政党
+  type: rss
+  url: https://sanseito.jp/rss
+- name: 日本共産党
+  type: rss
+  url: https://www.jcp.or.jp/rss
+- name: れいわ新選組
+  type: rss
+  url: https://reiwa-shinsengumi.com/feed/
+- name: 日本保守党
+  type: rss
+  url: https://hoshuto.jp/feed/
+- name: 社会民主党
+  type: rss
+  url: https://sdp.or.jp/feed/
+- name: チームみらい
+  type: html_index
+  url: https://team-mir.ai/
+  base_url: https://team-mir.ai
+  link_selector: 'TODO: 記事リンクのCSSセレクタ'
+- name: 中道改革連合
+  type: html_index
+  url: https://craj.jp
+  base_url: https://craj.jp
+  link_selector: 'TODO: 記事リンクのCSSセレクタ'
+- name: 減税日本・ゆうこく連合
+  type: rss
+  url: http://genzeiyukoku.jp/feed/

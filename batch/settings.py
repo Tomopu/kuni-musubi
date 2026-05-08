@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # Gemini API キー（LLM処理に使用）
     gemini_api_key: str = ""
     # LLM モデル名
-    llm_model: str = "gemini-2.0-flash"
+    llm_model: str = "gemini-3-flash-preview"
     # スクレイパーの HTTP タイムアウト（秒）— 保守的に短めに設定
     scraper_timeout: int = 15
     # RSS フィード取得の最大件数

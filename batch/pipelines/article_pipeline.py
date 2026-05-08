@@ -98,15 +98,13 @@ def run_article_pipeline(
                     f" {fetch_result.source_url} — {exc}"
                 )
 
-        # 5. LLM で処理する
-        try:
-            llm_output = process_article_with_llm(fetch_result)
-            result.total_processed += 1
-        except Exception as exc:
-            msg = f"[pipeline] LLM 処理失敗: {fetch_result.source_url} — {exc}"
-            print(msg)
+        # 5. LLM で処理する（エラー時は None が返る）
+        llm_output = process_article_with_llm(fetch_result)
+        if llm_output is None:
+            msg = f"[pipeline] LLM 処理失敗: {fetch_result.source_url}"
             result.errors.append(msg)
             continue
+        result.total_processed += 1
 
         if dry_run:
             print(f"[pipeline] dry_run: {llm_output.display_title}")

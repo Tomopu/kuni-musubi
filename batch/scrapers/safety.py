@@ -8,6 +8,8 @@ from threading import Lock
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
 
+import httpx
+
 from batch.settings import settings
 
 _USER_AGENT = "Kuni-Musubi-Bot/1.0"
@@ -46,22 +48,39 @@ domain_rate_limiter = DomainRateLimiter(settings.scraper_domain_interval_seconds
 def check_robots_txt(url: str, user_agent: str = _USER_AGENT) -> bool:
     """robots.txt を取得してアクセス可否を返す。
 
-    取得失敗時は安全側に倒してアクセス許可（True）を返す。
+    urllib.robotparser のデフォルト UA では WAF に弾かれるため、
+    httpx で User-Agent を明示して取得する。取得失敗時はフェイルオープン。
 
     1. robots.txt の URL を組み立てる
-    2. RobotFileParser で取得・パースする
-    3. 対象 URL のアクセス可否を返す
+    2. httpx で User-Agent を付けて GET する
+    3. 200 の場合は RobotFileParser でパースして可否を返す
+    4. 401/403/404・ネットワークエラーはアクセス許可（Fail Open）とする
     """
     parsed = urlparse(url)
     robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
-    rp = RobotFileParser()
-    rp.set_url(robots_url)
     try:
-        rp.read()
-    except Exception:
-        # robots.txt が存在しないか取得できない場合はアクセス許可とみなす
+        resp = httpx.get(
+            robots_url,
+            headers={"User-Agent": user_agent},
+            timeout=10,
+            follow_redirects=True,
+        )
+        if resp.status_code == 200:
+            rp = RobotFileParser()
+            rp.parse(resp.text.splitlines())
+            return bool(rp.can_fetch(user_agent, url))
+        # WAF 弾き・ファイルなし・その他エラーはすべてフェイルオープン
+        print(
+            f"[safety] robots.txt が取得できませんが、アクセスを試行します"
+            f" (status={resp.status_code}): {robots_url}"
+        )
         return True
-    return bool(rp.can_fetch(user_agent, url))
+    except Exception:
+        print(
+            f"[safety] robots.txt が取得できませんが、アクセスを試行します"
+            f" (ネットワークエラー): {robots_url}"
+        )
+        return True
 
 
 def compute_backoff_seconds(attempt: int, base: float = 1.0, factor: float = 2.0) -> float:
