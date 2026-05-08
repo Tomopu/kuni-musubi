@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import analytics, articles, categories, parties
+from app.api.admin.router import router as admin_router
 from app.infrastructure.db import models
 from app.infrastructure.db.dev_schema import ensure_dev_schema
 from app.infrastructure.db.seeds.run_seeds import run as run_seeds
@@ -33,6 +34,7 @@ app.include_router(articles.router)
 app.include_router(parties.router)
 app.include_router(categories.router)
 app.include_router(analytics.router)
+app.include_router(admin_router)
 
 
 @app.get("/health")

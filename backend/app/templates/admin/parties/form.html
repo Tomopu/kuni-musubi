@@ -1,0 +1,102 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ '政党編集' if party else '政党新規作成' }} - KM Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fs-4 fw-bold mb-0">{{ '政党編集' if party else '政党新規作成' }}</h2>
+  <a href="/admin/parties" class="btn btn-outline-secondary btn-sm">一覧に戻る</a>
+</div>
+
+<form action="{{ '/admin/parties/' + party.id|string + '/edit' if party else '/admin/parties/new' }}" method="post">
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">基本情報</div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="name" class="form-label">名前 <span class="text-danger">*</span></label>
+          <input type="text" id="name" name="name" class="form-control" required
+                 value="{{ party.name if party else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label for="short_name" class="form-label">略称 <span class="text-danger">*</span></label>
+          <input type="text" id="short_name" name="short_name" class="form-control" required
+                 value="{{ party.short_name if party else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label for="color_hex" class="form-label">カラーコード</label>
+          <input type="text" id="color_hex" name="color_hex" class="form-control"
+                 placeholder="#4A90E2"
+                 value="{{ party.color_hex or '' if party else '' }}">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-3">
+          <label for="display_order" class="form-label">表示順</label>
+          <input type="number" id="display_order" name="display_order" class="form-control"
+                 value="{{ party.display_order if party else 0 }}">
+        </div>
+        <div class="col-md-3">
+          <label for="founded_year" class="form-label">設立年</label>
+          <input type="number" id="founded_year" name="founded_year" class="form-control"
+                 value="{{ party.founded_year or '' if party else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label for="leader_name" class="form-label">代表者名</label>
+          <input type="text" id="leader_name" name="leader_name" class="form-control"
+                 value="{{ party.leader_name or '' if party else '' }}">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-3">
+          <label for="house_of_representatives_seats" class="form-label">衆議院議席数</label>
+          <input type="number" id="house_of_representatives_seats" name="house_of_representatives_seats" class="form-control"
+                 value="{{ party.house_of_representatives_seats if party and party.house_of_representatives_seats is not none else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label for="house_of_councillors_seats" class="form-label">参議院議席数</label>
+          <input type="number" id="house_of_councillors_seats" name="house_of_councillors_seats" class="form-control"
+                 value="{{ party.house_of_councillors_seats if party and party.house_of_councillors_seats is not none else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label for="official_url" class="form-label">公式 URL</label>
+          <input type="text" id="official_url" name="official_url" class="form-control"
+                 value="{{ party.official_url or '' if party else '' }}">
+        </div>
+      </div>
+      <div class="form-check mb-3">
+        <input type="checkbox" id="is_active" name="is_active" class="form-check-input" value="on"
+               {{ 'checked' if not party or party.is_active else '' }}>
+        <label for="is_active" class="form-check-label">アクティブ</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">政策・マニフェスト</div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="ideology_summary" class="form-label">イデオロギー要約</label>
+        <textarea id="ideology_summary" name="ideology_summary" class="form-control" rows="3">{{ party.ideology_summary or '' if party else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="manifesto_summary" class="form-label">マニフェスト要約</label>
+        <textarea id="manifesto_summary" name="manifesto_summary" class="form-control" rows="4">{{ party.manifesto_summary or '' if party else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="manifesto_promises" class="form-label">マニフェスト公約（1行1項目）</label>
+        <textarea id="manifesto_promises" name="manifesto_promises" class="form-control" rows="6">{{ party.manifesto_promises | join('\n') if party and party.manifesto_promises else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="main_policy_categories" class="form-label">主要政策カテゴリ（1行1項目）</label>
+        <textarea id="main_policy_categories" name="main_policy_categories" class="form-control" rows="4">{{ party.main_policy_categories | join('\n') if party and party.main_policy_categories else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">保存する</button>
+    <a href="/admin/parties" class="btn btn-outline-secondary">キャンセル</a>
+  </div>
+</form>
+{% endblock %}

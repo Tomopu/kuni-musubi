@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+
+{% block title %}政党管理 - KM Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fs-4 fw-bold mb-0">政党管理</h2>
+  <a href="/admin/parties/new" class="btn btn-primary btn-sm">新規作成</a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width: 70px;">表示順</th>
+          <th>名前</th>
+          <th style="width: 80px;">略称</th>
+          <th style="width: 120px;">代表者</th>
+          <th style="width: 80px;">衆議席</th>
+          <th style="width: 80px;">参議席</th>
+          <th style="width: 80px;">有効</th>
+          <th style="width: 120px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for party in parties %}
+        <tr>
+          <td class="text-center">{{ party.display_order }}</td>
+          <td>
+            {% if party.color_hex %}
+              <span class="d-inline-block rounded me-1" style="width:12px; height:12px; background-color:{{ party.color_hex }};"></span>
+            {% endif %}
+            {{ party.name }}
+          </td>
+          <td>{{ party.short_name }}</td>
+          <td>{{ party.leader_name or '-' }}</td>
+          <td class="text-center">{{ party.house_of_representatives_seats if party.house_of_representatives_seats is not none else '-' }}</td>
+          <td class="text-center">{{ party.house_of_councillors_seats if party.house_of_councillors_seats is not none else '-' }}</td>
+          <td class="text-center">
+            {% if party.is_active %}
+              <span class="text-success">&#10003;</span>
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td class="text-nowrap">
+            <a href="/admin/parties/{{ party.id }}/edit" class="btn btn-outline-primary btn-sm">編集</a>
+            <form action="/admin/parties/{{ party.id }}/delete" method="post" class="d-inline"
+                  onsubmit="return confirm('この政党を削除してもよいですか？');">
+              <button type="submit" class="btn btn-outline-danger btn-sm">削除</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">政党がありません</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
