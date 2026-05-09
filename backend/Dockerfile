@@ -8,8 +8,9 @@ RUN pip install uv
 COPY backend/pyproject.toml .
 RUN uv pip install --system --no-cache -r pyproject.toml
 
-# 2. ソースコードとシードデータをコピーする
+# 2. ソースコード、batch 実行コード、シードデータをコピーする
 COPY backend/ .
+COPY batch/ ./batch/
 COPY docs/research/data/ docs/research/data/
 
 EXPOSE 8000

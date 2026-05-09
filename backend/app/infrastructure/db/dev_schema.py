@@ -36,6 +36,35 @@ DEV_SCHEMA_STATEMENTS = [
     "ALTER TABLE articles ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false",
     "ALTER TABLE articles ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now()",
     "ALTER TABLE articles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now()",
+    # raw_content カラム追加
+    "ALTER TABLE articles ADD COLUMN IF NOT EXISTS raw_content TEXT",
+    # primary_source_url の重複排除 → ユニークインデックス作成
+    """
+DO $$
+BEGIN
+    -- 重複 URL がある場合、最新レコード1件を残して削除する
+    DELETE FROM articles
+    WHERE id NOT IN (
+        SELECT DISTINCT ON (primary_source_url) id
+        FROM articles
+        WHERE primary_source_url IS NOT NULL
+        ORDER BY primary_source_url, created_at DESC
+    )
+    AND primary_source_url IS NOT NULL;
+
+    -- ユニークインデックスがなければ作成する（NULL は除外）
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes
+        WHERE tablename = 'articles'
+          AND indexname = 'uq_articles_primary_source_url'
+    ) THEN
+        CREATE UNIQUE INDEX uq_articles_primary_source_url
+        ON articles (primary_source_url)
+        WHERE primary_source_url IS NOT NULL;
+    END IF;
+END
+$$;
+""",
     # article_display_contents
     "ALTER TABLE article_display_contents ADD COLUMN IF NOT EXISTS display_title VARCHAR(300) NOT NULL DEFAULT ''",
     "ALTER TABLE article_display_contents ADD COLUMN IF NOT EXISTS card_summary TEXT NOT NULL DEFAULT ''",
@@ -98,6 +127,8 @@ DEV_SCHEMA_TABLES = [
     "article_events",
     "daily_article_stats",
     "daily_category_stats",
+    "import_jobs",
+    "import_job_logs",
 ]
 
 

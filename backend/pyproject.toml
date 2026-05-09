@@ -14,13 +14,19 @@ dependencies = [
     "python-multipart>=0.0.9",
     "bcrypt>=4.0.0",
     "itsdangerous>=2.1.0",
+    # Admin 画面から batch pipeline を呼び出すため、batch の runtime 依存も backend 環境に入れる。
+    "httpx>=0.27.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.0.0",
+    "google-genai>=1.0.0",
+    "pyyaml>=6.0.0",
+    "tenacity>=8.0.0",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
-    "httpx>=0.27.0",
     "ruff>=0.8.0",
     "mypy>=1.13.0",
 ]

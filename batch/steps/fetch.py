@@ -48,6 +48,15 @@ class FetchResult:
     feed_url: str
 
 
+@dataclass
+class ManualSource:
+    """手動指定 URL ソース（CLI --url-list や admin 入力用）。"""
+
+    url: str
+    source_name: str = "manual"
+    source_type: str = "party_official"
+
+
 def load_feeds_from_config(config_path: Path = _CONFIG_PATH) -> list[FeedConfig]:
     """parties.yml から FeedConfig のリストを読み込む。
 

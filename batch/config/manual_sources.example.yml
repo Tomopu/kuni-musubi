@@ -1,0 +1,14 @@
+# URL リスト取り込みのサンプル設定ファイル
+# 使い方:
+#   cp config/manual_sources.example.yml config/manual_sources.yml
+#   PYTHONPATH=..:../backend uv run python -m batch.main --url-list config/manual_sources.yml
+#
+# source_type の値: party_official | government | local_government | news_media | other
+
+sources:
+  - url: "https://www.jimin.jp/news/press/example.html"
+    source_name: "自由民主党"
+    source_type: "party_official"
+  - url: "https://cdp-japan.jp/news/example"
+    source_name: "立憲民主党"
+    source_type: "party_official"

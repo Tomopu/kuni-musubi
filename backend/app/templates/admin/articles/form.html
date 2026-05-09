@@ -55,6 +55,11 @@
                {{ 'checked' if article and article.is_published else '' }}>
         <label for="is_published" class="form-check-label">公開する</label>
       </div>
+      <div class="mb-3 mt-3">
+        <label for="raw_content" class="form-label">原文（raw_content）</label>
+        <textarea id="raw_content" name="raw_content" class="form-control font-monospace" rows="8"
+                  style="font-size: 0.8rem;">{{ article.raw_content or '' if article else '' }}</textarea>
+      </div>
     </div>
   </div>
 

@@ -18,7 +18,7 @@ feeds:
   # RSS URL 確認ページ: https://www.jimin.jp/aboutus/link_tool/?tab=rss
   - source_name: "自由民主党"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "http://rss.jimin.jp/f1887/index.rdf"
     site_url: "https://www.jimin.jp/"
@@ -26,7 +26,7 @@ feeds:
   # 立憲民主党（RSS 確認済み）
   - source_name: "立憲民主党"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "https://cdp-japan.jp/news/feed"
     site_url: "https://cdp-japan.jp/"
@@ -34,7 +34,7 @@ feeds:
   # 国民民主党（RSS 確認済み）
   - source_name: "国民民主党"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "https://new-kokumin.jp/rss"
     site_url: "https://new-kokumin.jp/"
@@ -42,7 +42,7 @@ feeds:
   # 公明党（RSS 確認済み）
   - source_name: "公明党"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "https://www.komei.or.jp/komeinews/feed"
     site_url: "https://www.komei.or.jp/"
@@ -52,16 +52,16 @@ feeds:
   # link_selector: 年付き URL のみ抽出してグローバルメニューを除外
   - source_name: "日本維新の会"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "html_index"
     site_url: "https://o-ishin.jp/news/"
     base_url: "https://o-ishin.jp"
-    link_selector: "a[href*='/news/20']"
+    link_selector: "a[href*='/news/2']"
 
   # 参政党（RSS 確認済み）
   - source_name: "参政党"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "https://www.sanseito.jp/feed/"
     site_url: "https://www.sanseito.jp/"
@@ -69,7 +69,7 @@ feeds:
   # 日本共産党（RSS 確認済み）
   - source_name: "日本共産党"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "https://www.jcp.or.jp/rss"
     site_url: "https://www.jcp.or.jp/"
@@ -77,7 +77,7 @@ feeds:
   # れいわ新選組（RSS 確認済み）
   - source_name: "れいわ新選組"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "https://reiwa-shinsengumi.com/feed/"
     site_url: "https://reiwa-shinsengumi.com/"
@@ -85,7 +85,7 @@ feeds:
   # 日本保守党（RSS 確認済み）
   - source_name: "日本保守党"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "https://hoshuto.jp/feed/"
     site_url: "https://hoshuto.jp/"
@@ -93,7 +93,7 @@ feeds:
   # 社会民主党（RSS 確認済み）
   - source_name: "社会民主党"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "https://sdp.or.jp/feed/"
     site_url: "https://sdp.or.jp/"
@@ -103,7 +103,7 @@ feeds:
   # link_selector: 仮置き（--fetch-only で確認後に要調整）
   - source_name: "チームみらい"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "html_index"
     site_url: "https://team-mir.ai/news/all"
     base_url: "https://team-mir.ai"
@@ -113,7 +113,7 @@ feeds:
   # link_selector: 仮置き（--fetch-only で確認後に要調整）
   - source_name: "中道改革連合"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "html_index"
     site_url: "https://craj.jp"
     base_url: "https://craj.jp"
@@ -122,7 +122,7 @@ feeds:
   # 減税日本・ゆうこく連合（RSS 確認済み）
   - source_name: "減税日本・ゆうこく連合"
     source_type: "party_official"
-    max_items: 10
+    max_items: 1
     type: "rss"
     url: "http://genzeiyukoku.jp/feed/"
     site_url: "http://genzeiyukoku.jp/"

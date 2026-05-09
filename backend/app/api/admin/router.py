@@ -1,5 +1,7 @@
 """管理者用 Admin パネルのルーター。"""
 
+import json
+import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +21,12 @@ from app.api.admin.auth import (
     hash_password,
     verify_password,
 )
+from app.api.admin.import_service import (
+    JobParams,
+    create_and_start_job,
+    get_active_job,
+    has_gemini_key,
+)
 from app.infrastructure.db.models import (
     AdminUser,
     Article,
@@ -26,6 +34,8 @@ from app.infrastructure.db.models import (
     ArticleEvent,
     DailyArticleStat,
     DailyCategoryStat,
+    ImportJob,
+    ImportJobLog,
     OnboardingEvent,
     Party,
     PolicyCategory,
@@ -220,6 +230,7 @@ def articles_create(
     life_impact: str = Form(""),
     remaining_issues: str = Form(""),
     public_reactions_summary: str = Form(""),
+    raw_content: str = Form(""),
 ):
     # 1. 認証ガード
     admin = get_current_admin(request, db)
@@ -239,6 +250,7 @@ def articles_create(
             status=status,
             important_rank=int(important_rank) if important_rank else None,
             is_published=(is_published == "on"),
+            raw_content=raw_content or None,
         )
         db.add(article)
         db.flush()
@@ -308,6 +320,7 @@ def articles_update(
     life_impact: str = Form(""),
     remaining_issues: str = Form(""),
     public_reactions_summary: str = Form(""),
+    raw_content: str = Form(""),
 ):
     # 1. 認証ガード
     admin = get_current_admin(request, db)
@@ -330,6 +343,7 @@ def articles_update(
         article.status = status
         article.important_rank = int(important_rank) if important_rank else None
         article.is_published = (is_published == "on")
+        article.raw_content = raw_content or None
         # 5. ArticleDisplayContent を更新または作成する
         if display_title:
             dc = article.display_content
@@ -387,6 +401,51 @@ def articles_delete(
         db.delete(article)
         db.commit()
         return _redirect_with_msg("/admin/articles", "記事を削除しました")
+    except Exception as e:
+        db.rollback()
+        return _redirect_with_msg("/admin/articles", f"エラーが発生しました: {e}", "error")
+
+
+@router.post("/articles/bulk-action")
+def articles_bulk_action(
+    request: Request,
+    db: Session = Depends(get_db),
+    action: str = Form(...),
+    article_ids: list[str] = Form(default=[]),
+):
+    # 1. 認証ガード
+    admin = get_current_admin(request, db)
+    if not admin:
+        return RedirectResponse("/admin/login", status_code=302)
+    # 2. 対象 ID が空の場合はエラー表示
+    if not article_ids:
+        return _redirect_with_msg("/admin/articles", "対象が選択されていません", "error")
+    # 3. 有効なアクションを確認する
+    if action not in ("publish", "unpublish", "draft"):
+        return _redirect_with_msg("/admin/articles", "不正な操作です", "error")
+    try:
+        # 4. 各記事を更新する
+        updated = 0
+        for aid_str in article_ids:
+            try:
+                aid = uuid.UUID(aid_str)
+            except ValueError:
+                continue
+            article = db.query(Article).filter(Article.id == aid).first()
+            if not article:
+                continue
+            if action == "publish":
+                article.is_published = True
+                article.status = "processed"
+            elif action == "unpublish":
+                article.is_published = False
+            elif action == "draft":
+                article.is_published = False
+                article.status = "draft"
+            updated += 1
+        db.commit()
+        label = {"publish": "公開", "unpublish": "非公開", "draft": "下書き"}[action]
+        return _redirect_with_msg("/admin/articles", f"{updated} 件を{label}にしました")
     except Exception as e:
         db.rollback()
         return _redirect_with_msg("/admin/articles", f"エラーが発生しました: {e}", "error")
@@ -934,3 +993,145 @@ def daily_category_stats_delete(
     except Exception as e:
         db.rollback()
         return _redirect_with_msg("/admin/daily-category-stats", f"エラーが発生しました: {e}", "error")
+
+
+# ---------------------------------------------------------------------------
+# 記事取り込み（Import）
+# ---------------------------------------------------------------------------
+
+_IMPORT_JOB_PAGE_SIZE = 30
+
+
+@router.get("/imports", response_class=HTMLResponse)
+def imports_index(request: Request, db: Session = Depends(get_db)):
+    # 1. 認証ガード
+    admin = get_current_admin(request, db)
+    if not admin:
+        return RedirectResponse("/admin/login", status_code=302)
+    # 2. 実行中ジョブを確認する
+    active_job = get_active_job(db)
+    return templates.TemplateResponse(
+        request=request,
+        name="admin/imports/index.html",
+        context={
+            "admin": admin,
+            "active_job": active_job,
+            "has_gemini": has_gemini_key(),
+        },
+    )
+
+
+@router.post("/imports/run")
+def imports_run(
+    request: Request,
+    db: Session = Depends(get_db),
+    job_type: str = Form(...),
+    single_url: str = Form(""),
+    url_list_text: str = Form(""),
+    url_source_name: str = Form("manual"),
+    url_source_type: str = Form("party_official"),
+    dry_run: str = Form(""),
+):
+    # 1. 認証ガード
+    admin = get_current_admin(request, db)
+    if not admin:
+        return RedirectResponse("/admin/login", status_code=302)
+    # 2. 実行中ジョブがある場合は拒否する
+    if get_active_job(db):
+        return _redirect_with_msg("/admin/imports", "別のジョブが実行中です。完了後に再試行してください", "error")
+    # 3. Gemini 不要ジョブ以外はキー確認
+    needs_gemini = job_type not in ("fetch_only",)
+    if needs_gemini and not has_gemini_key():
+        return _redirect_with_msg("/admin/imports", "GEMINI_API_KEY が設定されていません", "error")
+    # 4. URL ソースを組み立てる
+    url_sources = None
+    if job_type == "url_list" and url_list_text.strip():
+        lines = [ln.strip() for ln in url_list_text.splitlines() if ln.strip()]
+        url_sources = [
+            {
+                "url": ln,
+                "source_name": url_source_name or "manual",
+                "source_type": url_source_type or "party_official",
+            }
+            for ln in lines
+            if ln.startswith("http")
+        ]
+        if not url_sources:
+            return _redirect_with_msg("/admin/imports", "有効な URL が見つかりません", "error")
+    # 5. ジョブを作成して開始する
+    params = JobParams(
+        job_type=job_type,
+        single_url=single_url.strip() or None,
+        url_sources=url_sources,
+        dry_run=(job_type == "dry_run") or (dry_run == "on"),
+        fetch_only=(job_type == "fetch_only"),
+    )
+    job_id = create_and_start_job(params)
+    return _redirect_with_msg(f"/admin/imports/jobs/{job_id}", "ジョブを開始しました")
+
+
+@router.get("/imports/jobs", response_class=HTMLResponse)
+def imports_jobs_list(
+    request: Request,
+    db: Session = Depends(get_db),
+    page: int = 1,
+):
+    # 1. 認証ガード
+    admin = get_current_admin(request, db)
+    if not admin:
+        return RedirectResponse("/admin/login", status_code=302)
+    # 2. ジョブ一覧を取得する
+    offset = (page - 1) * _IMPORT_JOB_PAGE_SIZE
+    total = db.query(ImportJob).count()
+    jobs = (
+        db.query(ImportJob)
+        .order_by(ImportJob.created_at.desc())
+        .offset(offset)
+        .limit(_IMPORT_JOB_PAGE_SIZE)
+        .all()
+    )
+    total_pages = (total + _IMPORT_JOB_PAGE_SIZE - 1) // _IMPORT_JOB_PAGE_SIZE
+    return templates.TemplateResponse(
+        request=request,
+        name="admin/imports/jobs.html",
+        context={
+            "admin": admin,
+            "jobs": jobs,
+            "page": page,
+            "total_pages": total_pages,
+        },
+    )
+
+
+@router.get("/imports/jobs/{job_id}", response_class=HTMLResponse)
+def imports_job_detail(
+    job_id: uuid.UUID,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    # 1. 認証ガード
+    admin = get_current_admin(request, db)
+    if not admin:
+        return RedirectResponse("/admin/login", status_code=302)
+    # 2. ジョブと最新ログを取得する
+    job = db.query(ImportJob).filter(ImportJob.id == job_id).first()
+    if not job:
+        return _redirect_with_msg("/admin/imports/jobs", "ジョブが見つかりません", "error")
+    logs = (
+        db.query(ImportJobLog)
+        .filter(ImportJobLog.job_id == job_id)
+        .order_by(ImportJobLog.created_at.asc())
+        .all()
+    )
+    # running 中は 5 秒ごとに auto-refresh する
+    auto_refresh = job.status in ("queued", "running")
+    return templates.TemplateResponse(
+        request=request,
+        name="admin/imports/job_detail.html",
+        context={
+            "admin": admin,
+            "job": job,
+            "logs": logs,
+            "auto_refresh": auto_refresh,
+        },
+    )

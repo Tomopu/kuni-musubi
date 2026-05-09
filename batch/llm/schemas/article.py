@@ -16,20 +16,28 @@ SourceType = Literal[
 ]
 
 
+class GroundingSource(BaseModel):
+    """Google 検索グラウンディングで参照した出典 URL。"""
+
+    url: str = Field(..., min_length=1)
+    title: str = ""
+    source_type: SourceType = "other"
+
+    @field_validator("url")
+    @classmethod
+    def validate_url_scheme(cls, v: str) -> str:
+        """javascript: スキームを禁止する（XSS 対策）。"""
+        if v.lower().strip().startswith("javascript:"):
+            raise ValueError("javascript: URL は禁止されています")
+        return v
+
+
 class RelatedParty(BaseModel):
     """記事に関連する政党情報。"""
 
     party_name: str = Field(..., min_length=1, max_length=100)
     party_short_name: str = Field(..., min_length=1, max_length=20)
     relation_type: RelationType
-
-
-class PublicReactionsSummary(BaseModel):
-    """世論・与野党からの評価サマリ。"""
-
-    government_or_ruling_party_view: str = ""
-    opposition_view: str = ""
-    public_opinion_or_expert_view: str = ""
 
 
 class SourceSummary(BaseModel):
@@ -72,9 +80,8 @@ class ArticleLLMOutput(BaseModel):
     positive_point: str = Field(..., min_length=1)
     life_impact: str = Field(..., min_length=1)
     remaining_issues: list[str] = Field(default_factory=list)
-    public_reactions_summary: PublicReactionsSummary = Field(
-        default_factory=PublicReactionsSummary
-    )
+    public_reactions_summary: str = ""
+    grounding_sources: list[GroundingSource] = Field(default_factory=list)
     source_summary: SourceSummary
     quality_flags: QualityFlags = Field(default_factory=QualityFlags)
 

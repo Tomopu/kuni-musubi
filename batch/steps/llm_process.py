@@ -55,7 +55,7 @@ def _call_gemini(user_prompt: str) -> str:
             system_instruction=SYSTEM_PROMPT,
             max_output_tokens=2048,
             temperature=0.2,
-            response_mime_type="application/json",
+            tools=[types.Tool(google_search=types.GoogleSearch())],
         ),
     )
     return response.text or ""

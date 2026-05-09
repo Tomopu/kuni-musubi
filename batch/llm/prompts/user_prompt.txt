@@ -25,11 +25,14 @@
   "positive_point": "string",
   "life_impact": "string",
   "remaining_issues": ["string"],
-  "public_reactions_summary": {{
-    "government_or_ruling_party_view": "string",
-    "opposition_view": "string",
-    "public_opinion_or_expert_view": "string"
-  }},
+  "public_reactions_summary": "string (Markdown箇条書き。例: ・【〇〇党】〜と主張。\\n・【世論】〜という声がある。 情報がない場合は空文字)",
+  "grounding_sources": [
+    {{
+      "url": "string (Google検索で参照した実在のURL。架空のURLは禁止)",
+      "title": "string (参照元ページのタイトル)",
+      "source_type": "party_official | government | local_government | news_media | other"
+    }}
+  ],
   "source_summary": {{
     "primary_source_url": "{source_url}",
     "source_type": "party_official | government | local_government | news_media | other",

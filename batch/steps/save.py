@@ -60,9 +60,10 @@ def save_article(
 
     1. articles レコードを作成する
     2. article_display_contents レコードを作成する
-    3. article_sources レコードを作成する
-    4. article_parties 中間レコードを作成する
-    5. article_categories 中間レコードを作成する
+    3. article_sources（一次情報）レコードを作成する
+    4. grounding_sources を article_sources に追加する
+    5. article_parties 中間レコードを作成する
+    6. article_categories 中間レコードを作成する
     """
     # 1. articles を作成する
     needs_human_review = llm_output.quality_flags.needs_human_review
@@ -75,6 +76,7 @@ def save_article(
         collected_at=datetime.now(tz=timezone.utc),
         status="processed" if not needs_human_review else "draft",
         is_published=not needs_human_review,
+        raw_content=fetch_result.body_text or None,
     )
     session.add(article)
     session.flush()  # article.id を確定させる
@@ -88,26 +90,40 @@ def save_article(
         positive_point=llm_output.positive_point,
         life_impact=llm_output.life_impact,
         remaining_issues=json.dumps(llm_output.remaining_issues, ensure_ascii=False),
-        public_reactions_summary=json.dumps(
-            llm_output.public_reactions_summary.model_dump(), ensure_ascii=False
-        ),
+        public_reactions_summary=llm_output.public_reactions_summary or None,
         created_by="llm_batch",
     )
     session.add(display_content)
 
-    # 3. article_sources を作成する
+    # 3. article_sources（一次情報）を作成する
     source = ArticleSource(
         id=uuid.uuid4(),
         article_id=article.id,
         source_name=llm_output.source_summary.source_name or fetch_result.source_name,
-        source_url=llm_output.source_summary.primary_source_url,
+        source_url=fetch_result.source_url,
         source_type=llm_output.source_summary.source_type,
         published_at=_parse_published_at(llm_output.source_summary.published_at),
         retrieved_at=datetime.now(tz=timezone.utc),
     )
     session.add(source)
 
-    # 4. article_parties 中間レコードを作成する
+    # 4. grounding_sources（Google 検索で参照した出典 URL）を article_sources に追加する
+    for gs in llm_output.grounding_sources:
+        # 一次情報と同一 URL は重複保存しない
+        if gs.url == fetch_result.source_url:
+            continue
+        gs_source = ArticleSource(
+            id=uuid.uuid4(),
+            article_id=article.id,
+            source_name=gs.title or None,
+            source_url=gs.url,
+            source_type=gs.source_type,
+            published_at=None,
+            retrieved_at=datetime.now(tz=timezone.utc),
+        )
+        session.add(gs_source)
+
+    # 5. article_parties 中間レコードを作成する
     for related in llm_output.related_parties:
         party_id = _resolve_party_id(session, related.party_name)
         if party_id is None:
@@ -121,7 +137,7 @@ def save_article(
             )
         )
 
-    # 5. article_categories 中間レコードを作成する
+    # 6. article_categories 中間レコードを作成する
     for order, cat_name in enumerate(llm_output.categories):
         cat_id = _resolve_category_id(session, cat_name)
         if cat_id is None:

@@ -105,6 +105,7 @@ class Article(Base):
     original_title: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     source_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     primary_source_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    raw_content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     published_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
@@ -279,3 +280,58 @@ class AdminUser(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class ImportJob(Base):
+    __tablename__ = "import_jobs"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    job_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    # queued | running | completed | failed | cancelled
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="queued")
+    params: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON
+    total_fetched: Mapped[int] = mapped_column(Integer, default=0)
+    total_processed: Mapped[int] = mapped_column(Integer, default=0)
+    total_saved: Mapped[int] = mapped_column(Integer, default=0)
+    total_skipped_duplicates: Mapped[int] = mapped_column(Integer, default=0)
+    total_errors: Mapped[int] = mapped_column(Integer, default=0)
+    saved_article_ids: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=False, default=list
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    started_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    finished_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    logs: Mapped[list["ImportJobLog"]] = relationship(
+        back_populates="job",
+        order_by="ImportJobLog.created_at",
+        cascade="all, delete-orphan",
+    )
+
+
+class ImportJobLog(Base):
+    __tablename__ = "import_job_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("import_jobs.id"), nullable=False
+    )
+    level: Mapped[str] = mapped_column(String(20), nullable=False, default="info")
+    # info | warning | error
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    log_metadata: Mapped[Optional[str]] = mapped_column("log_metadata", Text, nullable=True)  # JSON
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    job: Mapped["ImportJob"] = relationship(back_populates="logs")
