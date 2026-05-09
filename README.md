@@ -219,7 +219,9 @@ article_sources
 article_parties
 article_categories
 ```
-
+の
 `--dry-run` は LLM 出力の検証だけ行い、DB には保存しません。
 
-フロントエンドから送信される匿名イベントは、`onboarding_events`, `article_events`, `daily_article_stats` に保存されます。ユーザーアカウント、個人 ID、端末 ID、個人別閲覧履歴は保存しません。
+オンボーディングと設定画面の回答は端末内の localStorage に保存され、サーバーには送信しません。
+
+記事詳細の「参考になった」「そう思わなかった」などの記事イベントだけを、`article_events`, `daily_article_stats` に匿名・非公開の改善用データとして保存します。ユーザーアカウント、個人 ID、端末 ID、個人別閲覧履歴は保存しません。

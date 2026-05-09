@@ -91,8 +91,6 @@ $$;
     # article_categories
     "ALTER TABLE article_categories ADD COLUMN IF NOT EXISTS display_order INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE article_categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now()",
-    # onboarding_events
-    "ALTER TABLE onboarding_events ADD COLUMN IF NOT EXISTS selected_party_status VARCHAR(20)",
     # daily_article_stats
     (
         "ALTER TABLE daily_article_stats "
@@ -123,7 +121,6 @@ DEV_SCHEMA_TABLES = [
     "article_sources",
     "article_parties",
     "article_categories",
-    "onboarding_events",
     "article_events",
     "daily_article_stats",
     "daily_category_stats",

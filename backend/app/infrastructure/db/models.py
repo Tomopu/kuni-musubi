@@ -184,27 +184,6 @@ class ArticleSource(Base):
     article: Mapped["Article"] = relationship(back_populates="sources")
 
 
-class OnboardingEvent(Base):
-    __tablename__ = "onboarding_events"
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    age_group: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    selected_party_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
-    selected_party_status: Mapped[Optional[str]] = mapped_column(
-        String(20), nullable=True
-    )  # none | unknown | skipped | selected
-    interest_category_ids: Mapped[list[str]] = mapped_column(
-        ARRAY(String), nullable=False, default=list
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-
-
 class ArticleEvent(Base):
     __tablename__ = "article_events"
 

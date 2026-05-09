@@ -36,7 +36,6 @@ from app.infrastructure.db.models import (
     DailyCategoryStat,
     ImportJob,
     ImportJobLog,
-    OnboardingEvent,
     Party,
     PolicyCategory,
 )
@@ -768,66 +767,6 @@ def categories_delete(
 # ---------------------------------------------------------------------------
 
 _STATS_PAGE_SIZE = 50
-
-
-@router.get("/onboarding-events", response_class=HTMLResponse)
-def onboarding_events_list(
-    request: Request,
-    db: Session = Depends(get_db),
-    page: int = 1,
-):
-    # 1. 認証ガード
-    admin = get_current_admin(request, db)
-    if not admin:
-        return RedirectResponse("/admin/login", status_code=302)
-    # 2. オンボーディングイベント一覧を取得する
-    offset = (page - 1) * PAGE_SIZE
-    total = db.query(OnboardingEvent).count()
-    items = (
-        db.query(OnboardingEvent)
-        .order_by(OnboardingEvent.created_at.desc())
-        .offset(offset)
-        .limit(PAGE_SIZE)
-        .all()
-    )
-    total_pages = (total + PAGE_SIZE - 1) // PAGE_SIZE
-    # 3. 政党名解決用の辞書を作成する（{str(party_id): party_name}）
-    party_name_map: dict[str, str] = {
-        str(p.id): p.name for p in db.query(Party).all()
-    }
-    return templates.TemplateResponse(
-        request=request,
-        name="admin/stats/onboarding_events.html",
-        context={
-            "items": items,
-            "page": page,
-            "total_pages": total_pages,
-            "party_name_map": party_name_map,
-        },
-    )
-
-
-@router.post("/onboarding-events/{event_id}/delete")
-def onboarding_events_delete(
-    event_id: uuid.UUID,
-    request: Request,
-    db: Session = Depends(get_db),
-):
-    # 1. 認証ガード
-    admin = get_current_admin(request, db)
-    if not admin:
-        return RedirectResponse("/admin/login", status_code=302)
-    try:
-        # 2. イベントを取得して削除する
-        event = db.query(OnboardingEvent).filter(OnboardingEvent.id == event_id).first()
-        if not event:
-            return _redirect_with_msg("/admin/onboarding-events", "イベントが見つかりません", "error")
-        db.delete(event)
-        db.commit()
-        return _redirect_with_msg("/admin/onboarding-events", "イベントを削除しました")
-    except Exception as e:
-        db.rollback()
-        return _redirect_with_msg("/admin/onboarding-events", f"エラーが発生しました: {e}", "error")
 
 
 @router.get("/article-events", response_class=HTMLResponse)

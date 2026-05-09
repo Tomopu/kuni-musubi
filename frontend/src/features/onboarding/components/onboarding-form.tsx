@@ -20,7 +20,6 @@ import {
   Zap,
 } from "lucide-react";
 import { savePreferences } from "@/lib/storage/preferences-storage";
-import { postOnboardingEvent } from "@/lib/api/analytics-api";
 import {
   AGE_GROUP_OPTIONS,
   PARTY_OPTIONS,
@@ -124,22 +123,6 @@ export function OnboardingForm() {
       supportedPartyId,
       interestedCategoryIds,
       onboardingCompleted: true,
-    });
-
-    const partyStatus =
-      supportedPartyId === "none"
-        ? "none"
-        : supportedPartyId === "unknown"
-          ? "unknown"
-          : supportedPartyId === null
-            ? "skipped"
-            : "selected";
-
-    void postOnboardingEvent({
-      age_group: ageGroup,
-      selected_party_id: partyStatus === "selected" ? supportedPartyId : null,
-      selected_party_status: partyStatus,
-      interest_category_ids: interestedCategoryIds,
     });
 
     router.push("/");
@@ -303,7 +286,7 @@ export function OnboardingForm() {
       <div className="privacy-note">
         <LockKeyhole size={20} />
         <p>
-          回答は端末内に保存され、表示内容の調整に使われます。また、サービス改善のため、個人を特定できない匿名の集計データとして利用する場合があります。
+          回答は端末内に保存され、表示内容の調整に使われます。サーバーには送信されません。
           <Link
             href="/about"
             className="privacy-note__link"
