@@ -3,7 +3,10 @@ import { PageContainer } from "@/components/layout/page-container";
 import { HomeView } from "@/features/articles/components/home-view";
 
 type Props = {
-  searchParams?: Promise<{ party?: string | string[] }>;
+  searchParams?: Promise<{
+    category?: string | string[];
+    party?: string | string[];
+  }>;
 };
 
 export const metadata: Metadata = {
@@ -15,11 +18,16 @@ export const metadata: Metadata = {
 export default async function HomePage({ searchParams }: Props) {
   const params = await searchParams;
   const party = params?.party;
+  const category = params?.category;
   const initialPartyId = Array.isArray(party) ? party[0] : party;
+  const initialCategoryId = Array.isArray(category) ? category[0] : category;
 
   return (
     <PageContainer className="py-6">
-      <HomeView initialPartyId={initialPartyId} />
+      <HomeView
+        initialCategoryId={initialCategoryId}
+        initialPartyId={initialPartyId}
+      />
     </PageContainer>
   );
 }

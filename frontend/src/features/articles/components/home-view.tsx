@@ -8,22 +8,31 @@ import { useRouter } from "next/navigation";
 import {
   ChevronRight,
   LayoutGrid,
-  SlidersHorizontal,
   Sparkles,
+  Tags,
 } from "lucide-react";
 import { listArticles, type ArticleCardResponse } from "@/lib/api/articles-api";
+import {
+  listCategories,
+  type PolicyCategoryResponse,
+} from "@/lib/api/categories-api";
 import { listParties, type PartyResponse } from "@/lib/api/parties-api";
 import { getPreferences, needsOnboarding } from "@/lib/storage/preferences-storage";
 import { ArticleCard } from "@/features/articles/components/article-card";
 
 type HomeViewProps = {
+  initialCategoryId?: string;
   initialPartyId?: string;
 };
 
-export function HomeView({ initialPartyId }: HomeViewProps) {
+export function HomeView({ initialCategoryId, initialPartyId }: HomeViewProps) {
   const router = useRouter();
   const [articles, setArticles] = useState<ArticleCardResponse[]>([]);
+  const [categories, setCategories] = useState<PolicyCategoryResponse[]>([]);
   const [parties, setParties] = useState<PartyResponse[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    initialCategoryId ?? null,
+  );
   const [selectedPartyId, setSelectedPartyId] = useState<string | null | undefined>(undefined);
   const [heroPartyName, setHeroPartyName] = useState<string | null>(null);
   const [heroPartyId, setHeroPartyId] = useState<string | null>(null);
@@ -36,6 +45,9 @@ export function HomeView({ initialPartyId }: HomeViewProps) {
     listParties()
       .then(setParties)
       .catch(() => setParties([]));
+    listCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]));
   }, []);
 
   useEffect(() => {
@@ -66,10 +78,11 @@ export function HomeView({ initialPartyId }: HomeViewProps) {
   }, [heroPartyId, parties]);
 
   const fetchArticles = useCallback(
-    async (partyId: string | null, cursor?: string) => {
+    async (partyId: string | null, categoryId: string | null, cursor?: string) => {
       try {
         return await listArticles({
           ...(partyId ? { party_id: partyId } : {}),
+          ...(categoryId ? { category_ids: categoryId } : {}),
           sort: "latest",
           limit: "12",
           ...(cursor ? { cursor } : {}),
@@ -84,17 +97,17 @@ export function HomeView({ initialPartyId }: HomeViewProps) {
   useEffect(() => {
     if (selectedPartyId === undefined) return;
     setLoading(true);
-    fetchArticles(selectedPartyId).then((res) => {
+    fetchArticles(selectedPartyId, selectedCategoryId).then((res) => {
       setArticles(res.items);
       setNextCursor(res.next_cursor);
       setLoading(false);
     });
-  }, [selectedPartyId, fetchArticles]);
+  }, [selectedCategoryId, selectedPartyId, fetchArticles]);
 
   const handleLoadMore = async () => {
     if (!nextCursor || loadingMore || selectedPartyId === undefined) return;
     setLoadingMore(true);
-    const res = await fetchArticles(selectedPartyId, nextCursor);
+    const res = await fetchArticles(selectedPartyId, selectedCategoryId, nextCursor);
     setArticles((prev) => [...prev, ...res.items]);
     setNextCursor(res.next_cursor);
     setLoadingMore(false);
@@ -104,10 +117,15 @@ export function HomeView({ initialPartyId }: HomeViewProps) {
   const heroParty = heroPartyId ? parties.find((p) => p.id === heroPartyId) : null;
   const heroPartyColor = heroParty?.color_hex ?? "#e60012";
   const heroPartyDetailHref = heroPartyId ? `/parties/${heroPartyId}` : "/parties";
+  const selectedCategoryName = categories.find((c) => c.id === selectedCategoryId)?.name;
   const selectedPartyName = parties.find((p) => p.id === selectedPartyId)?.name;
-  const articleSectionTitle = selectedPartyName
-    ? `${selectedPartyName}のニュース`
-    : "すべてのニュース";
+  const articleSectionTitle = selectedPartyName && selectedCategoryName
+    ? `${selectedPartyName}の${selectedCategoryName}ニュース`
+    : selectedPartyName
+      ? `${selectedPartyName}のニュース`
+      : selectedCategoryName
+        ? `${selectedCategoryName}のニュース`
+        : "すべてのニュース";
 
   if (!onboardingChecked) {
     return <div className="empty-state">読み込み中...</div>;
@@ -235,10 +253,24 @@ export function HomeView({ initialPartyId }: HomeViewProps) {
           <Sparkles size={18} />
           {articleSectionTitle}
         </h2>
-        <button type="button" className="sort-pill">
-          <SlidersHorizontal size={14} />
-          新しい順
-        </button>
+        <label className="category-filter">
+          <Tags size={14} aria-hidden="true" />
+          <span className="sr-only">カテゴリで絞り込む</span>
+          <select
+            value={selectedCategoryId ?? ""}
+            onChange={(event) => {
+              setSelectedCategoryId(event.target.value || null);
+              setNextCursor(null);
+            }}
+          >
+            <option value="">すべてのカテゴリ</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {loading ? (

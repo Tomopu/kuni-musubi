@@ -63,7 +63,7 @@ export type ArticleListResponse = {
 // 記事一覧取得パラメータ
 export type ListArticlesParams = {
   party_id?: string;
-  category_id?: string;
+  category_ids?: string;
   sort?: "latest" | "important";
   limit?: string;
   cursor?: string;
@@ -75,7 +75,7 @@ export async function listArticles(
 ): Promise<ArticleListResponse> {
   const queryParams: Record<string, string> = {};
   if (params?.party_id) queryParams.party_id = params.party_id;
-  if (params?.category_id) queryParams.category_id = params.category_id;
+  if (params?.category_ids) queryParams.category_ids = params.category_ids;
   if (params?.sort) queryParams.sort = params.sort;
   if (params?.limit) queryParams.limit = params.limit;
   if (params?.cursor) queryParams.cursor = params.cursor;
