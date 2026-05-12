@@ -12,12 +12,12 @@
 
 出力する JSON スキーマ:
 {{
-  "display_title": "string (300文字以内)",
-  "card_summary": "string (100文字程度)",
+  "display_title": "string (300文字以内。です・ます調に近い落ち着いた前向きな表現。感嘆符は禁止)",
+  "card_summary": "string (100文字程度。です・ます調。『だよ』『だね』『注目だ』は禁止)",
   "related_parties": [
     {{
-      "party_name": "string",
-      "party_short_name": "string",
+      "party_name": "string (必ず下記の政党名候補から選ぶ。人物名・議員名・省庁名は禁止)",
+      "party_short_name": "string (必ず下記の略称候補から選ぶ)",
       "relation_type": "primary | mentioned | opposition_view"
     }}
   ],
@@ -46,3 +46,23 @@
     "risk_notes": ["string"]
   }}
 }}
+
+related_parties の政党名候補:
+- 自由民主党 / 自民
+- 立憲民主党 / 立憲
+- 国民民主党 / 国民民主
+- 公明党 / 公明
+- 日本維新の会 / 維新
+- 参政党 / 参政
+- 日本共産党 / 共産
+- れいわ新選組 / れいわ
+- 日本保守党 / 保守
+- 社会民主党 / 社民
+- チームみらい / みらい
+- 中道改革連合 / 中道改革
+- 減税日本・ゆうこく連合 / 減税・ゆうこく
+
+related_parties の注意:
+- 出典名が上記の政党名に一致する場合、その政党を relation_type: "primary" として必ず含めてください。
+- 質問者・答弁者・議員名・大臣名・個人名を party_name に入れてはいけません。
+- 判断できない場合は、出典名の政党だけを primary として出力してください。

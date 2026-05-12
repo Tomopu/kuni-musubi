@@ -28,11 +28,10 @@ VALID_PAYLOAD: dict = {
     "positive_point": "長年課題だった子育て支援の予算が増額され、具体的な補助額が示された。",
     "life_impact": "0〜3歳の子を持つ家庭は月5万円の補助が受けられる見込み。保育料の実質負担が軽減される。",
     "remaining_issues": ["財源の確保方法が未確定", "所得制限の有無が不明"],
-    "public_reactions_summary": {
-        "government_or_ruling_party_view": "子育て世代の負担軽減に向けた重要な一歩と評価",
-        "opposition_view": "財源の裏付けが不明確として慎重な議論を求める声",
-        "public_opinion_or_expert_view": "子育て世代からは歓迎の声、専門家からは制度設計の精査を求める意見",
-    },
+    "public_reactions_summary": (
+        "・【与党】子育て世代の負担軽減に向けた重要な一歩と評価。\n"
+        "・【野党】財源の裏付けが不明確として慎重な議論を求める声。"
+    ),
     "source_summary": {
         "primary_source_url": "https://example.com/article/1",
         "source_type": "party_official",
