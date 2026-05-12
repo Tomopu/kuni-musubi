@@ -87,6 +87,10 @@
             <label class="form-label small fw-bold">URL</label>
             <input type="url" name="single_url" class="form-control form-control-sm"
                    placeholder="https://example.com/news/article.html" required>
+            <div class="form-text text-muted">
+              <strong>.pdf</strong> で終わる URL は PDF 直接解析、
+              <strong>youtube.com / youtu.be</strong> は字幕取得を自動で行います。
+            </div>
           </div>
           <div class="row g-2 mb-2">
             <div class="col">
@@ -127,7 +131,12 @@
           <div class="mb-2">
             <label class="form-label small fw-bold">URL リスト（1行1URL）</label>
             <textarea name="url_list_text" class="form-control form-control-sm font-monospace"
-                      rows="6" placeholder="https://example.com/news/1&#10;https://example.com/news/2"></textarea>
+                      rows="6" placeholder="https://example.com/news/1&#10;https://example.com/news/2&#10;https://example.com/doc.pdf&#10;https://www.youtube.com/watch?v=xxxxx"></textarea>
+            <div class="form-text text-muted">
+              <strong>.pdf</strong> 結末の URL は PDF 直接解析、
+              <strong>youtube.com / youtu.be</strong> URL は日本語字幕取得を自動で行います。
+              HTML / PDF / YouTube を混在させることもできます。
+            </div>
           </div>
           <div class="row g-2 mb-2">
             <div class="col-auto">

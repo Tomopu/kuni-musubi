@@ -16,6 +16,9 @@ from batch.steps.fetch import (
     FeedConfig,
     FetchResult,
     ManualSource,
+    detect_url_media_type,
+    fetch_single_pdf_url,
+    fetch_single_youtube_url,
     fetch_articles_from_feeds,
     load_feeds_from_config,
 )
@@ -67,7 +70,25 @@ def _normalize_url(url: str) -> str:
 
 
 def _fetch_single_url(url: str) -> "FetchResult":
-    """指定 URL をスクレイピングして FetchResult を返す。"""
+    """URL の種別を自動判定してフェッチ結果を返す。
+
+    1. URL 形式からメディア種別を判定する
+    2. PDF → pypdf でテキスト抽出
+    3. YouTube → youtube-transcript-api で字幕取得
+    4. それ以外 → HTML スクレイピング
+    """
+    # 1. メディア種別を判定する
+    media_type = detect_url_media_type(url)
+
+    # 2. PDF 処理
+    if media_type == "pdf":
+        return fetch_single_pdf_url(url)
+
+    # 3. YouTube 処理
+    if media_type == "youtube":
+        return fetch_single_youtube_url(url)
+
+    # 4. HTML スクレイピング
     body_text = fetch_article_text(url)
     return FetchResult(
         title=url,
@@ -77,6 +98,7 @@ def _fetch_single_url(url: str) -> "FetchResult":
         published_at=datetime.now(timezone.utc).isoformat(),
         body_text=body_text,
         feed_url=url,
+        media_type="html",
     )
 
 
@@ -115,19 +137,42 @@ def run_article_pipeline(
     # 1. フィードまたは URL リストまたは単一 URL から記事を取得する
     if single_url:
         normalized = _normalize_url(single_url)
+        media_type = detect_url_media_type(normalized)
         _emit(progress_callback, "info", f"[pipeline] 単一 URL モード: {normalized}")
-        fetch_results: list[FetchResult] = [_fetch_single_url(single_url)]
+        if media_type == "pdf":
+            _emit(progress_callback, "info", "[pdf] ページ解析中...")
+        elif media_type == "youtube":
+            _emit(progress_callback, "info", "[youtube] 字幕取得中...")
+        try:
+            fetch_results: list[FetchResult] = [_fetch_single_url(single_url)]
+        except ValueError as exc:
+            _emit(progress_callback, "error", f"[pipeline] テキスト抽出に失敗しました: {exc}")
+            result.errors.append(str(exc))
+            return result
+        except Exception as exc:
+            _emit(progress_callback, "error", f"[pipeline] URL 取得エラー: {exc}")
+            result.errors.append(str(exc))
+            return result
     elif url_sources:
         _emit(progress_callback, "info", f"[pipeline] URL リストモード: {len(url_sources)} 件")
         fetch_results = []
         for ms in url_sources:
             try:
                 _emit(progress_callback, "info", f"[pipeline] URL 取得開始: {ms.url}")
+                _media_type = detect_url_media_type(ms.url)
+                if _media_type == "pdf":
+                    _emit(progress_callback, "info", "[pdf] ページ解析中...")
+                elif _media_type == "youtube":
+                    _emit(progress_callback, "info", "[youtube] 字幕取得中...")
                 fr = _fetch_single_url(ms.url)
                 fr.source_name = ms.source_name
                 fr.source_type = ms.source_type
                 fetch_results.append(fr)
                 _emit(progress_callback, "info", f"[pipeline] URL 取得成功: {ms.url} ({len(fr.body_text)} 文字)")
+            except ValueError as exc:
+                msg = f"[pipeline] テキスト抽出に失敗しました: {ms.url} — {exc}"
+                _emit(progress_callback, "error", msg)
+                result.errors.append(msg)
             except Exception as exc:
                 msg = f"[pipeline] URL 取得失敗: {ms.url} — {exc}"
                 _emit(progress_callback, "error", msg)
@@ -175,8 +220,8 @@ def run_article_pipeline(
             result.total_skipped += 1
             continue
 
-        # 4. 本文が短い場合は URL からフル本文を取得して補強する
-        if len(fetch_result.body_text) < _MIN_BODY_LENGTH:
+        # 4. 本文が短い場合は URL からフル本文を取得して補強する（HTML のみ）
+        if fetch_result.media_type == "html" and len(fetch_result.body_text) < _MIN_BODY_LENGTH:
             try:
                 _emit(progress_callback, "info", f"[pipeline] 本文補強開始: {fetch_result.source_url}")
                 full_text = fetch_article_text(fetch_result.source_url)

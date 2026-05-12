@@ -6,6 +6,7 @@
     PYTHONPATH=..:../backend uv run python -m batch.main --dry-run                # LLM まで、DB なし
     PYTHONPATH=..:../backend uv run python -m batch.main --url "https://..."      # URL 指定 1件処理
     PYTHONPATH=..:../backend uv run python -m batch.main --url-list config/manual_sources.yml  # URL リスト処理
+    PYTHONPATH=..:../backend uv run python -m batch.main --fetch-only --party "公明党"  # 特定政党のみ
 """
 
 import argparse
@@ -38,6 +39,13 @@ def main() -> None:
         dest="url_list",
         help="YAML ファイルに記載された複数 URL を処理する（sources[].url, source_name, source_type）",
     )
+    parser.add_argument(
+        "--party",
+        type=str,
+        default=None,
+        metavar="PARTY_NAME",
+        help="指定した政党名のフィードのみを処理する（例: --party 公明党）",
+    )
     args = parser.parse_args()
 
     # URL リスト YAML を読み込む
@@ -58,7 +66,19 @@ def main() -> None:
         ]
         print(f"[main] URL リスト読み込み: {len(url_sources)} 件 ({args.url_list})")
 
+    # --party フィルタ: 特定政党のフィードのみに絞り込む
+    feeds = None
+    if args.party and not args.url and not args.url_list:
+        from batch.steps.fetch import load_feeds_from_config
+        all_feeds = load_feeds_from_config()
+        feeds = [f for f in all_feeds if f.source_name == args.party]
+        if not feeds:
+            print(f"[main] 政党 '{args.party}' のフィードが parties.yml に見つかりません")
+            return
+        print(f"[main] 政党フィルタ: '{args.party}' ({len(feeds)} エントリ)")
+
     result = run_article_pipeline(
+        feeds=feeds,
         dry_run=args.dry_run,
         fetch_only=args.fetch_only,
         single_url=args.url,

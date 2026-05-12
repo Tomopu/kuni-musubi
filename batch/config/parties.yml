@@ -1,128 +1,173 @@
-# 政党ごとの取得設定
-# verify_feeds.py による RSS 検証結果をマージ済み
+# 政党ごとの取得設定（政策・国会活動に特化したフィルタ済み URL）
 #
-# type フィールド:
-#   rss        - RSS/Atom フィードを直接取得する
-#   html_index - ニュース一覧 HTML から記事リンクを抽出する（RSS 廃止/非公開の場合）
+# type フィールドの種別:
+#   rss          - RSS/Atom フィードを直接取得する
+#   html_index   - ニュース一覧 HTML から記事リンクを抽出する
+#   dynamic_date - 実行日から動的に URL を生成して html_index として処理する
+#   pdf          - HTML ページ内の PDF リンクを抽出してテキストを取得する
+#   youtube      - YouTube プレイリスト RSS から字幕を取得する
 #
-# html_index タイプの設定項目:
-#   site_url      - スクレイプ対象のニュース一覧 URL
-#   base_url      - 相対パスの URL を絶対 URL に変換するベース
-#   link_selector - 記事リンクを抽出する CSS セレクタ（手動設定が必要）
+# オプションフィールド:
+#   title_include: [str]  - いずれかのキーワードを含む記事のみ通過
+#   title_exclude: [str]  - いずれかのキーワードを含む記事をスキップ
+#   url_template:         - dynamic_date 用テンプレート ({YYYY} {MM} {DD})
+#   date_range_days:      - dynamic_date で生成する日数（デフォルト 2）
+#   playlist_id:          - youtube タイプで使う YouTube プレイリスト ID
 #
 # 動作確認コマンド（batch/ ディレクトリから）:
 #   PYTHONPATH=..:../backend uv run python -m batch.main --fetch-only
+#   PYTHONPATH=..:../backend uv run python -m batch.main --fetch-only --party "公明党"
 
 feeds:
-  # 自由民主党（RSS 確認済み）
-  # RSS URL 確認ページ: https://www.jimin.jp/aboutus/link_tool/?tab=rss
+  # 自由民主党（政策カテゴリ）
   - source_name: "自由民主党"
     source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "http://rss.jimin.jp/f1887/index.rdf"
-    site_url: "https://www.jimin.jp/"
+    max_items: 3
+    type: "html_index"
+    site_url: "https://www.jimin.jp/news/?category=policy"
+    base_url: "https://www.jimin.jp"
+    link_selector: "a[href*='/news/policy/'], a[href*='/policy/']"
 
-  # 立憲民主党（RSS 確認済み）
-  - source_name: "立憲民主党"
-    source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "https://cdp-japan.jp/news/feed"
-    site_url: "https://cdp-japan.jp/"
-
-  # 国民民主党（RSS 確認済み）
-  - source_name: "国民民主党"
-    source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "https://new-kokumin.jp/rss"
-    site_url: "https://new-kokumin.jp/"
-
-  # 公明党（RSS 確認済み）
-  - source_name: "公明党"
-    source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "https://www.komei.or.jp/komeinews/feed"
-    site_url: "https://www.komei.or.jp/"
-
-  # 日本維新の会（RSS 非公開 → HTML 一覧から取得）
-  # 記事 URL パターン: /news/YYYY/MM/DD/NNNNN.html
-  # link_selector: 年付き URL のみ抽出してグローバルメニューを除外
+  # 日本維新の会（国会活動 + 改革実績 URL 2件）
   - source_name: "日本維新の会"
     source_type: "party_official"
-    max_items: 1
+    max_items: 2
     type: "html_index"
-    site_url: "https://o-ishin.jp/news/"
+    site_url: "https://o-ishin.jp/news/parliament/"
     base_url: "https://o-ishin.jp"
     link_selector: "a[href*='/news/2']"
 
-  # 参政党（RSS 確認済み）
+  - source_name: "日本維新の会"
+    source_type: "party_official"
+    max_items: 2
+    type: "html_index"
+    site_url: "https://o-ishin.jp/news/miwokirukaikaku/"
+    base_url: "https://o-ishin.jp"
+    link_selector: "a[href*='/news/2']"
+
+  # 国民民主党（政策 + 国会 URL 2件）
+  - source_name: "国民民主党"
+    source_type: "party_official"
+    max_items: 2
+    type: "html_index"
+    site_url: "https://new-kokumin.jp/category/policy"
+    base_url: "https://new-kokumin.jp"
+    link_selector: "a[href*='/news/']"
+
+  - source_name: "国民民主党"
+    source_type: "party_official"
+    max_items: 2
+    type: "html_index"
+    site_url: "https://new-kokumin.jp/category/diet"
+    base_url: "https://new-kokumin.jp"
+    link_selector: "a[href*='/news/']"
+
+  # 公明党（動的日付 URL 生成 + コラム・主張を除外）
+  - source_name: "公明党"
+    source_type: "party_official"
+    max_items: 3
+    type: "dynamic_date"
+    url_template: "https://www.komei.or.jp/{YYYY}/{MM}/{DD}/?post_type=komeinews"
+    base_url: "https://www.komei.or.jp"
+    link_selector: "a[href*='/komeinews/'], .entry-title a, h2 a"
+    date_range_days: 2
+    title_exclude:
+      - "【主張】"
+      - "コラム"
+
+  # 立憲民主党（提出法案タグ）
+  - source_name: "立憲民主党"
+    source_type: "party_official"
+    max_items: 3
+    type: "html_index"
+    site_url: "https://cdp-japan.jp/tag/%E6%8F%90%E5%87%BA%E6%B3%95%E6%A1%88"
+    base_url: "https://cdp-japan.jp"
+    link_selector: "a[href*='/news/']"
+
+  # 参政党（国会質疑 + 国会報告 URL 2件）
   - source_name: "参政党"
     source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "https://www.sanseito.jp/feed/"
-    site_url: "https://www.sanseito.jp/"
+    max_items: 2
+    type: "html_index"
+    site_url: "https://sanseito.jp/news/cat/parliamentary_qa_session/"
+    base_url: "https://sanseito.jp"
+    link_selector: "a[href*='/news/']"
 
-  # 日本共産党（RSS 確認済み）
-  - source_name: "日本共産党"
+  - source_name: "参政党"
     source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "https://www.jcp.or.jp/rss"
-    site_url: "https://www.jcp.or.jp/"
+    max_items: 2
+    type: "html_index"
+    site_url: "https://sanseito.jp/news/cat/diet_report/"
+    base_url: "https://sanseito.jp"
+    link_selector: "a[href*='/news/']"
 
-  # れいわ新選組（RSS 確認済み）
+  # れいわ新選組（国会活動）
   - source_name: "れいわ新選組"
     source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "https://reiwa-shinsengumi.com/feed/"
-    site_url: "https://reiwa-shinsengumi.com/"
+    max_items: 3
+    type: "html_index"
+    site_url: "https://reiwa-shinsengumi.com/activity/"
+    base_url: "https://reiwa-shinsengumi.com"
+    link_selector: "a[href*='/activity/']"
 
-  # 日本保守党（RSS 確認済み）
+  # 日本保守党（国会活動ページから PDF を抽出）
   - source_name: "日本保守党"
     source_type: "party_official"
     max_items: 1
-    type: "rss"
-    url: "https://hoshuto.jp/feed/"
-    site_url: "https://hoshuto.jp/"
+    type: "pdf"
+    site_url: "https://hoshuto.jp/pariament/"
+    base_url: "https://hoshuto.jp"
 
-  # 社会民主党（RSS 確認済み）
+  # 社会民主党（機関紙カテゴリ）
   - source_name: "社会民主党"
     source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "https://sdp.or.jp/feed/"
-    site_url: "https://sdp.or.jp/"
+    max_items: 3
+    type: "html_index"
+    site_url: "https://sdp.or.jp/category/sdp-paper/"
+    base_url: "https://sdp.or.jp"
+    link_selector: "a[href*='/sdp-paper/']"
 
-  # チームみらい（RSS 非公開 → HTML 一覧から取得）
-  # 公式: https://team-mir.ai/（旧 team-mirai.jp は保険代理店のため不使用）
-  # link_selector: 仮置き（--fetch-only で確認後に要調整）
+  # チームみらい（「質疑」を含むタイトルのみ）
   - source_name: "チームみらい"
     source_type: "party_official"
-    max_items: 1
+    max_items: 5
     type: "html_index"
     site_url: "https://team-mir.ai/news/all"
     base_url: "https://team-mir.ai"
-    link_selector: ".news-list a, .post-title a, a[href*='/news/']"
+    link_selector: "a[href*='/news/']"
+    title_include:
+      - "質疑"
 
-  # 中道改革連合
-  # link_selector: 仮置き（--fetch-only で確認後に要調整）
+  # 中道改革連合（政策 + 国会タグ 2件）
   - source_name: "中道改革連合"
     source_type: "party_official"
-    max_items: 1
+    max_items: 2
     type: "html_index"
-    site_url: "https://craj.jp"
+    site_url: "https://craj.jp/news/?tag=%E6%94%BF%E7%AD%96"
     base_url: "https://craj.jp"
-    link_selector: ".news-list a, .p-news-list__item a"
+    link_selector: "a[href*='/news/']"
 
-  # 減税日本・ゆうこく連合（RSS 確認済み）
+  - source_name: "中道改革連合"
+    source_type: "party_official"
+    max_items: 2
+    type: "html_index"
+    site_url: "https://craj.jp/news/?tag=%E5%9B%BD%E4%BC%9A"
+    base_url: "https://craj.jp"
+    link_selector: "a[href*='/news/']"
+
+  # 減税日本・ゆうこく連合
   - source_name: "減税日本・ゆうこく連合"
     source_type: "party_official"
-    max_items: 1
-    type: "rss"
-    url: "http://genzeiyukoku.jp/feed/"
-    site_url: "http://genzeiyukoku.jp/"
+    max_items: 3
+    type: "html_index"
+    site_url: "https://genzeinippon.com/"
+    base_url: "https://genzeinippon.com"
+    link_selector: "a[href*='genzeinippon.com/']"
+
+  # 日本共産党（YouTube プレイリストから日本語字幕を抽出）
+  # プレイリスト: https://www.youtube.com/playlist?list=PL3M7AtnZgh3VHHyC4vwh7-D47I3xcPxU4
+  - source_name: "日本共産党"
+    source_type: "party_official"
+    max_items: 2
+    type: "youtube"
+    playlist_id: "PL3M7AtnZgh3VHHyC4vwh7-D47I3xcPxU4"

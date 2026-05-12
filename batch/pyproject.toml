@@ -13,6 +13,9 @@ dependencies = [
     "google-genai>=1.0.0",
     "pyyaml>=6.0.0",
     "tenacity>=8.0.0",
+    "pypdf>=4.0.0",
+    "youtube-transcript-api>=1.0.0",
+    "feedparser>=6.0.0",
     # DB モデルは backend/app/infrastructure/db/models.py を共用するため、
     # batch の親ディレクトリと backend root を PYTHONPATH に含めて実行する。
     # 例（batch/ ディレクトリから）: PYTHONPATH=..:../backend uv run python -m batch.main
