@@ -3,7 +3,6 @@
 import uuid
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 
@@ -142,7 +141,7 @@ class TestBulkArticleAction:
         assert "error" in resp.headers["location"]
 
     def test_publish_updates_articles(self, client: TestClient) -> None:
-        """publish アクションで is_published=True, status=processed になる。"""
+        """publish アクションで is_published=True, status=published になる。"""
         article_id = uuid.uuid4()
         mock_article = MagicMock()
         mock_article.id = article_id
@@ -156,7 +155,9 @@ class TestBulkArticleAction:
             from app.main import app
 
             mock_session = MagicMock()
-            mock_session.query.return_value.filter.return_value.first.return_value = mock_article
+            mock_session.query.return_value.filter.return_value.first.return_value = (
+                mock_article
+            )
 
             def _mock_db():
                 yield mock_session
@@ -173,4 +174,37 @@ class TestBulkArticleAction:
 
         assert resp.status_code == 302
         assert mock_article.is_published is True
-        assert mock_article.status == "processed"
+        assert mock_article.status == "published"
+
+    def test_unpublish_updates_articles(self, client: TestClient) -> None:
+        """unpublish アクションで is_published=False, status=draft になる。"""
+        article_id = uuid.uuid4()
+        mock_article = MagicMock()
+        mock_article.id = article_id
+
+        with patch("app.api.admin.router.get_current_admin") as mock_auth:
+            mock_auth.return_value = MagicMock()
+            from app.infrastructure.db.session import get_db
+            from app.main import app
+
+            mock_session = MagicMock()
+            mock_session.query.return_value.filter.return_value.first.return_value = (
+                mock_article
+            )
+
+            def _mock_db():
+                yield mock_session
+
+            app.dependency_overrides[get_db] = _mock_db
+            try:
+                resp = client.post(
+                    "/admin/articles/bulk-action",
+                    data={"action": "unpublish", "article_ids": [str(article_id)]},
+                    follow_redirects=False,
+                )
+            finally:
+                app.dependency_overrides.pop(get_db, None)
+
+        assert resp.status_code == 302
+        assert mock_article.is_published is False
+        assert mock_article.status == "draft"

@@ -111,6 +111,8 @@ $$;
     END
     $$;
     """,
+    # status 正規化: バッチ保存時の旧値 "processed" を "published" に統一する
+    "UPDATE articles SET status = 'published' WHERE status = 'processed'",
 ]
 
 DEV_SCHEMA_TABLES = [

@@ -74,7 +74,7 @@ def save_article(
         primary_source_url=fetch_result.source_url,
         published_at=_parse_published_at(fetch_result.published_at),
         collected_at=datetime.now(tz=timezone.utc),
-        status="processed" if not needs_human_review else "draft",
+        status="published" if not needs_human_review else "draft",
         is_published=not needs_human_review,
         raw_content=fetch_result.body_text or None,
     )

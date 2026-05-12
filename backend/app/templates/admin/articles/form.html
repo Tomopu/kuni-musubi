@@ -40,9 +40,10 @@
         <div class="col-md-4">
           <label for="status" class="form-label">ステータス</label>
           <select id="status" name="status" class="form-select">
-            <option value="draft" {{ 'selected' if article and article.status == 'draft' else '' }}>draft</option>
-            <option value="processed" {{ 'selected' if article and article.status == 'processed' else '' }}>processed</option>
+            <option value="draft" {{ 'selected' if not article or (article.status not in ['published', 'processed'] and not article.is_published) else '' }}>下書き（draft）</option>
+            <option value="published" {{ 'selected' if article and (article.status in ['published', 'processed'] or article.is_published) else '' }}>公開中（published）</option>
           </select>
+          <div class="form-text text-muted">published を選ぶと is_published も自動で true になります</div>
         </div>
         <div class="col-md-4">
           <label for="important_rank" class="form-label">重要度ランク</label>
@@ -50,16 +51,37 @@
                  value="{{ article.important_rank if article and article.important_rank is not none else '' }}">
         </div>
       </div>
-      <div class="form-check">
-        <input type="checkbox" id="is_published" name="is_published" class="form-check-input" value="on"
-               {{ 'checked' if article and article.is_published else '' }}>
-        <label for="is_published" class="form-check-label">公開する</label>
-      </div>
-      <div class="mb-3 mt-3">
+      <div class="mb-3">
         <label for="raw_content" class="form-label">原文（raw_content）</label>
         <textarea id="raw_content" name="raw_content" class="form-control font-monospace" rows="8"
                   style="font-size: 0.8rem;">{{ article.raw_content or '' if article else '' }}</textarea>
       </div>
+    </div>
+  </div>
+
+  <!-- 関連政党 -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">関連政党</div>
+    <div class="card-body">
+      <div class="row row-cols-2 row-cols-md-3 g-2">
+        {% for party in parties %}
+        <div class="col">
+          <div class="form-check">
+            <input type="checkbox" id="party_{{ party.id }}" name="party_ids"
+                   value="{{ party.id }}"
+                   class="form-check-input"
+                   {{ 'checked' if party.id|string in article_party_ids else '' }}>
+            <label for="party_{{ party.id }}" class="form-check-label">
+              {% if party.color_hex %}
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ party.color_hex }};margin-right:4px;vertical-align:middle;"></span>
+              {% endif %}
+              {{ party.name }}
+            </label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="form-text text-muted mt-2">表示順で最初の選択が primary、以降は mentioned になります。未選択でも保存できます。</div>
     </div>
   </div>
 
@@ -93,11 +115,11 @@
         </div>
       </div>
       <div class="mb-3">
-        <label for="positive_point" class="form-label">ポジティブポイント</label>
+        <label for="positive_point" class="form-label">ポジティブポイント <span class="text-muted small">（Markdown 可）</span></label>
         <textarea id="positive_point" name="positive_point" class="form-control" rows="6">{{ display_content.positive_point if display_content else '' }}</textarea>
       </div>
       <div class="mb-3">
-        <label for="life_impact" class="form-label">生活への影響</label>
+        <label for="life_impact" class="form-label">生活への影響 <span class="text-muted small">（Markdown 可）</span></label>
         <textarea id="life_impact" name="life_impact" class="form-control" rows="6">{{ display_content.life_impact if display_content else '' }}</textarea>
       </div>
       <div class="mb-3">
@@ -106,7 +128,7 @@
                   placeholder='["課題1","課題2"]'>{{ display_content.remaining_issues if display_content else '' }}</textarea>
       </div>
       <div class="mb-3">
-        <label for="public_reactions_summary" class="form-label">世論・反応サマリ</label>
+        <label for="public_reactions_summary" class="form-label">世論・反応サマリ <span class="text-muted small">（Markdown 可）</span></label>
         <textarea id="public_reactions_summary" name="public_reactions_summary" class="form-control" rows="4">{{ display_content.public_reactions_summary or '' if display_content else '' }}</textarea>
       </div>
     </div>

@@ -56,8 +56,9 @@
             {% endfor %}
           </td>
           <td>
-            <span class="badge {{ 'bg-success' if article.status == 'processed' else 'bg-secondary' }}">
-              {{ article.status }}
+            {% set normalized_status = 'published' if article.status in ['published', 'processed'] or article.is_published else 'draft' %}
+            <span class="badge {{ 'bg-success' if normalized_status == 'published' else 'bg-secondary' }}">
+              {{ normalized_status }}
             </span>
           </td>
           <td class="text-center">

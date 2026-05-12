@@ -11,6 +11,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import Session
 
 from app.api.admin.auth import (
@@ -38,6 +39,7 @@ from app.infrastructure.db.models import (
     ImportJobLog,
     Party,
     PolicyCategory,
+    article_parties,
 )
 from app.infrastructure.db.session import get_db
 
@@ -58,6 +60,34 @@ def _redirect_with_msg(path: str, msg: str, msg_type: str = "success"):
 def _split_lines(text: str) -> list[str]:
     """改行区切りのテキストを配列に変換する。"""
     return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def _normalize_article_status(status: str | None) -> str:
+    """記事ステータスを draft / published に正規化する。"""
+    if status in ("published", "processed"):
+        return "published"
+    return "draft"
+
+
+def _is_article_published(status: str | None) -> bool:
+    """公開可否をステータスから導出する。"""
+    return _normalize_article_status(status) == "published"
+
+
+def _parse_party_ids(party_ids: list[str]) -> list[uuid.UUID]:
+    """フォームから送られた政党IDを順序維持・重複除去して UUID にする。"""
+    parsed: list[uuid.UUID] = []
+    seen: set[uuid.UUID] = set()
+    for pid_str in party_ids:
+        try:
+            pid = uuid.UUID(pid_str)
+        except ValueError:
+            continue
+        if pid in seen:
+            continue
+        parsed.append(pid)
+        seen.add(pid)
+    return parsed
 
 
 # ---------------------------------------------------------------------------
@@ -203,10 +233,17 @@ def articles_new_page(request: Request, db: Session = Depends(get_db)):
     admin = get_current_admin(request, db)
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
+    parties = db.query(Party).order_by(Party.display_order).all()
     return templates.TemplateResponse(
         request=request,
         name="admin/articles/form.html",
-        context={"article": None, "display_content": None, "admin": admin},
+        context={
+            "article": None,
+            "display_content": None,
+            "admin": admin,
+            "parties": parties,
+            "article_party_ids": set(),
+        },
     )
 
 
@@ -220,7 +257,7 @@ def articles_create(
     published_at: str = Form(...),
     status: str = Form("draft"),
     important_rank: Optional[str] = Form(None),
-    is_published: Optional[str] = Form(None),
+    party_ids: list[str] = Form(default=[]),
     display_title: str = Form(""),
     card_summary: str = Form(""),
     thumbnail_type: str = Form("none"),
@@ -240,15 +277,16 @@ def articles_create(
         dt = datetime.fromisoformat(published_at)
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        # 3. Article を作成する
+        # 3. Article を作成する（status から is_published を導出する）
+        normalized_status = _normalize_article_status(status)
         article = Article(
             original_title=original_title or None,
             source_type=source_type or None,
             primary_source_url=primary_source_url or None,
             published_at=dt,
-            status=status,
+            status=normalized_status,
             important_rank=int(important_rank) if important_rank else None,
-            is_published=(is_published == "on"),
+            is_published=_is_article_published(normalized_status),
             raw_content=raw_content or None,
         )
         db.add(article)
@@ -267,6 +305,15 @@ def articles_create(
                 public_reactions_summary=public_reactions_summary or None,
             )
             db.add(dc)
+        # 5. article_parties を作成する（先頭が primary、それ以降は mentioned）
+        for i, pid in enumerate(_parse_party_ids(party_ids)):
+            db.execute(
+                article_parties.insert().values(
+                    article_id=article.id,
+                    party_id=pid,
+                    relation_type="primary" if i == 0 else "mentioned",
+                )
+            )
         db.commit()
         return _redirect_with_msg("/admin/articles", "記事を作成しました")
     except Exception as e:
@@ -288,6 +335,8 @@ def articles_edit_page(
     article = db.query(Article).filter(Article.id == article_id).first()
     if not article:
         return _redirect_with_msg("/admin/articles", "記事が見つかりません", "error")
+    parties = db.query(Party).order_by(Party.display_order).all()
+    article_party_ids = {str(p.id) for p in article.parties}
     return templates.TemplateResponse(
         request=request,
         name="admin/articles/form.html",
@@ -295,6 +344,8 @@ def articles_edit_page(
             "article": article,
             "display_content": article.display_content,
             "admin": admin,
+            "parties": parties,
+            "article_party_ids": article_party_ids,
         },
     )
 
@@ -310,7 +361,7 @@ def articles_update(
     published_at: str = Form(...),
     status: str = Form("draft"),
     important_rank: Optional[str] = Form(None),
-    is_published: Optional[str] = Form(None),
+    party_ids: list[str] = Form(default=[]),
     display_title: str = Form(""),
     card_summary: str = Form(""),
     thumbnail_type: str = Form("none"),
@@ -334,14 +385,15 @@ def articles_update(
         dt = datetime.fromisoformat(published_at)
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        # 4. Article を更新する
+        # 4. Article を更新する（status から is_published を導出する）
         article.original_title = original_title or None
         article.source_type = source_type or None
         article.primary_source_url = primary_source_url or None
         article.published_at = dt
-        article.status = status
+        normalized_status = _normalize_article_status(status)
+        article.status = normalized_status
         article.important_rank = int(important_rank) if important_rank else None
-        article.is_published = (is_published == "on")
+        article.is_published = _is_article_published(normalized_status)
         article.raw_content = raw_content or None
         # 5. ArticleDisplayContent を更新または作成する
         if display_title:
@@ -368,6 +420,20 @@ def articles_update(
                     public_reactions_summary=public_reactions_summary or None,
                 )
                 db.add(dc)
+        # 6. article_parties を更新する（既存を削除して再作成）
+        db.execute(
+            sa_delete(article_parties).where(
+                article_parties.c.article_id == article_id
+            )
+        )
+        for i, pid in enumerate(_parse_party_ids(party_ids)):
+            db.execute(
+                article_parties.insert().values(
+                    article_id=article_id,
+                    party_id=pid,
+                    relation_type="primary" if i == 0 else "mentioned",
+                )
+            )
         db.commit()
         return _redirect_with_msg("/admin/articles", "記事を更新しました")
     except Exception as e:
@@ -435,9 +501,10 @@ def articles_bulk_action(
                 continue
             if action == "publish":
                 article.is_published = True
-                article.status = "processed"
+                article.status = "published"
             elif action == "unpublish":
                 article.is_published = False
+                article.status = "draft"
             elif action == "draft":
                 article.is_published = False
                 article.status = "draft"
