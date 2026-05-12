@@ -5,7 +5,7 @@ Kuni-Musubi のシステム構成、データモデル、LLM 処理、API に関
 ## ドキュメント一覧
 
 - [20260430_システムアーキテクチャ.md](20260430_システムアーキテクチャ.md)
-  - Next.js、FastAPI、Python バッチ、PostgreSQL を中心とした全体構成、localStorage、匿名集計、MVP の設計原則をまとめたドキュメント。
+  - Vercel 上の Next.js、Supabase 上の Backend API / Batch / PostgreSQL を中心とした全体構成、Mermaid 図、localStorage、記事単位の匿名イベント、MVP の設計原則をまとめたドキュメント。
 
 - [20260501_API設計.md](20260501_API設計.md)
   - MVP で必要な記事一覧、記事詳細、政党、政策カテゴリ、匿名分析イベント API の設計をまとめたドキュメント。
