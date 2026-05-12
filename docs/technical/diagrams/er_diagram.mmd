@@ -1,0 +1,165 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial, Hiragino Sans, Meiryo, sans-serif", "primaryColor": "#EAF7F0", "primaryBorderColor": "#4C9A6A", "primaryTextColor": "#173323", "lineColor": "#5C6B61", "secondaryColor": "#EEF4FF", "tertiaryColor": "#FFF7E6"}}}%%
+erDiagram
+  PARTIES {
+    uuid id PK
+    str name
+    str short_name
+    str color_hex
+    bool is_active
+    int display_order
+    int founded_year
+    str leader_name
+    int house_of_representatives_seats
+    int house_of_councillors_seats
+    text ideology_summary
+    text manifesto_summary
+    text[] manifesto_promises
+    text[] main_policy_categories
+    str official_url
+    ts created_at
+    ts updated_at
+  }
+
+  POLICY_CATS {
+    uuid id PK
+    str name
+    str slug UK
+    text description
+    int display_order
+    ts created_at
+    ts updated_at
+  }
+
+  ARTICLES {
+    uuid id PK
+    str original_title
+    str source_type
+    text primary_source_url UK
+    text raw_content
+    ts published_at
+    ts collected_at
+    str status
+    int important_rank
+    bool is_published
+    ts created_at
+    ts updated_at
+  }
+
+  ARTICLE_CONTENTS {
+    uuid id PK
+    uuid article_id FK "unique"
+    str display_title
+    text card_summary
+    str thumbnail_type
+    text thumbnail_text
+    text thumbnail_url
+    text thumbnail_alt_text
+    text positive_point
+    text life_impact
+    text remaining_issues
+    text public_reactions_summary
+    str created_by
+    ts created_at
+    ts updated_at
+  }
+
+  SOURCES {
+    uuid id PK
+    uuid article_id FK
+    text source_name
+    text source_url
+    str source_type
+    ts published_at
+    ts retrieved_at
+    ts created_at
+  }
+
+  ARTICLE_PARTIES {
+    uuid article_id PK, FK
+    uuid party_id PK, FK
+    str relation_type
+    ts created_at
+  }
+
+  ARTICLE_CATS {
+    uuid article_id PK, FK
+    uuid category_id PK, FK
+    int display_order
+    ts created_at
+  }
+
+  EVENTS {
+    uuid id PK
+    str event_type
+    uuid article_id
+    str surface
+    ts created_at
+  }
+
+  ARTICLE_STATS {
+    uuid id PK
+    uuid article_id FK "unique with stat_date"
+    date stat_date UK
+    int impression_count
+    int card_click_count
+    int detail_view_count
+    int source_click_count
+    int helpful_click_count
+    int unhelpful_click_count
+    ts created_at
+    ts updated_at
+  }
+
+  CATEGORY_STATS {
+    uuid id PK
+    uuid category_id FK
+    date stat_date
+    int helpful_click_count
+    int card_click_count
+    ts created_at
+    ts updated_at
+  }
+
+  ADMIN_USERS {
+    uuid id PK
+    str username UK
+    text hashed_password
+    ts created_at
+    ts updated_at
+  }
+
+  IMPORT_JOBS {
+    uuid id PK
+    str job_type
+    str status
+    text params
+    int total_fetched
+    int total_processed
+    int total_saved
+    int total_skipped_duplicates
+    int total_errors
+    text[] saved_article_ids
+    ts created_at
+    ts started_at
+    ts finished_at
+  }
+
+  IMPORT_LOGS {
+    uuid id PK
+    uuid job_id FK
+    str level
+    text message
+    text log_metadata
+    ts created_at
+  }
+
+  ARTICLES ||--|| ARTICLE_CONTENTS : "has display content"
+  ARTICLES ||--o{ SOURCES : "has sources"
+  ARTICLES ||--o{ ARTICLE_PARTIES : "relates parties"
+  PARTIES ||--o{ ARTICLE_PARTIES : "appears in articles"
+  ARTICLES ||--o{ ARTICLE_CATS : "has categories"
+  POLICY_CATS ||--o{ ARTICLE_CATS : "classifies articles"
+  ARTICLES ||--o{ ARTICLE_STATS : "daily stats"
+  POLICY_CATS ||--o{ CATEGORY_STATS : "daily category stats"
+  ARTICLES ||--o{ EVENTS : "logical article events"
+  IMPORT_JOBS ||--o{ IMPORT_LOGS : "has logs"
