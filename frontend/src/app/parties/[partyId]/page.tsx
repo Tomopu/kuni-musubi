@@ -94,7 +94,12 @@ export default async function PartyDetailPage({ params }: Props) {
           <strong>{party.house_of_councillors_seats ?? 0}議席</strong>
         </div>
         {party.official_url && (
-          <a href={party.official_url} target="_blank" rel="noopener noreferrer">
+          <a
+            href={party.official_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="party-official-link"
+          >
             <span>公式サイト</span>
             <strong>
               公式サイトへ
@@ -162,12 +167,6 @@ export default async function PartyDetailPage({ params }: Props) {
           </div>
         </section>
       )}
-
-      <div className="party-news-note">
-        <MascotImage pose="greeting" size={58} />
-        <span>この政党のニュースは、ホーム画面の「{party.short_name}」タブでも見られます！</span>
-        <Check size={18} />
-      </div>
     </PageContainer>
   );
 }

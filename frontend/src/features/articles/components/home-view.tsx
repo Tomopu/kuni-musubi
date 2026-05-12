@@ -16,7 +16,11 @@ import { listParties, type PartyResponse } from "@/lib/api/parties-api";
 import { getPreferences, needsOnboarding } from "@/lib/storage/preferences-storage";
 import { ArticleCard } from "@/features/articles/components/article-card";
 
-export function HomeView() {
+type HomeViewProps = {
+  initialPartyId?: string;
+};
+
+export function HomeView({ initialPartyId }: HomeViewProps) {
   const router = useRouter();
   const [articles, setArticles] = useState<ArticleCardResponse[]>([]);
   const [parties, setParties] = useState<PartyResponse[]>([]);
@@ -41,7 +45,7 @@ export function HomeView() {
     }
 
     const partyId = getPreferences().supportedPartyId;
-    setSelectedPartyId(null);
+    setSelectedPartyId(initialPartyId ?? null);
     setOnboardingChecked(true);
     if (!partyId || ["none", "unknown", "other"].includes(partyId)) {
       setHeroPartyName(null);
@@ -49,7 +53,7 @@ export function HomeView() {
       return;
     }
     setHeroPartyId(partyId);
-  }, [router]);
+  }, [initialPartyId, router]);
 
   useEffect(() => {
     if (!heroPartyId) {

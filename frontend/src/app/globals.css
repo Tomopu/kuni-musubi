@@ -1553,6 +1553,14 @@ a {
   font-weight: 500;
 }
 
+.party-metrics .party-official-link strong {
+  color: #2563eb;
+}
+
+.party-metrics .party-official-link svg {
+  color: #2563eb;
+}
+
 .detail-card {
   border: 1px solid color-mix(in srgb, var(--party-color) 24%, var(--color-border));
   border-radius: 16px;
