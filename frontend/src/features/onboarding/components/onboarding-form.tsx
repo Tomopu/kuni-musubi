@@ -19,7 +19,11 @@ import {
   WalletCards,
   Zap,
 } from "lucide-react";
-import { savePreferences } from "@/lib/storage/preferences-storage";
+import {
+  getPreferences,
+  savePreferences,
+  SKIPPED_INTEREST_CATEGORY_ID,
+} from "@/lib/storage/preferences-storage";
 import {
   AGE_GROUP_OPTIONS,
   PARTY_OPTIONS,
@@ -102,6 +106,15 @@ export function OnboardingForm() {
   const [partyOptions, setPartyOptions] = useState<PartySelectOption[]>(fallbackPartyOptions);
 
   useEffect(() => {
+    const prefs = getPreferences();
+    setAgeGroup(prefs.ageGroup);
+    setSupportedPartyId(prefs.supportedPartyId);
+    setInterestedCategoryIds(
+      prefs.interestedCategoryIds.filter((id) => id !== SKIPPED_INTEREST_CATEGORY_ID),
+    );
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     void listParties()
       .then((parties) => {
@@ -119,9 +132,12 @@ export function OnboardingForm() {
   // 1. オンボーディングを完了してホームへ遷移する
   const handleComplete = () => {
     savePreferences({
-      ageGroup,
-      supportedPartyId,
-      interestedCategoryIds,
+      ageGroup: ageGroup ?? "no_answer",
+      supportedPartyId: supportedPartyId ?? "unknown",
+      interestedCategoryIds:
+        interestedCategoryIds.length > 0
+          ? interestedCategoryIds
+          : [SKIPPED_INTEREST_CATEGORY_ID],
       onboardingCompleted: true,
     });
 
@@ -130,7 +146,12 @@ export function OnboardingForm() {
 
   // 2. スキップしてホームへ遷移する
   const handleSkip = () => {
-    savePreferences({ onboardingCompleted: true });
+    savePreferences({
+      ageGroup: "no_answer",
+      supportedPartyId: "unknown",
+      interestedCategoryIds: [SKIPPED_INTEREST_CATEGORY_ID],
+      onboardingCompleted: true,
+    });
     router.push("/");
   };
 

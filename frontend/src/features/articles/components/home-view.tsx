@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   ChevronRight,
   LayoutGrid,
@@ -12,10 +13,11 @@ import {
 } from "lucide-react";
 import { listArticles, type ArticleCardResponse } from "@/lib/api/articles-api";
 import { listParties, type PartyResponse } from "@/lib/api/parties-api";
-import { getPreferences } from "@/lib/storage/preferences-storage";
+import { getPreferences, needsOnboarding } from "@/lib/storage/preferences-storage";
 import { ArticleCard } from "@/features/articles/components/article-card";
 
 export function HomeView() {
+  const router = useRouter();
   const [articles, setArticles] = useState<ArticleCardResponse[]>([]);
   const [parties, setParties] = useState<PartyResponse[]>([]);
   const [selectedPartyId, setSelectedPartyId] = useState<string | null | undefined>(undefined);
@@ -24,6 +26,7 @@ export function HomeView() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   useEffect(() => {
     listParties()
@@ -32,15 +35,21 @@ export function HomeView() {
   }, []);
 
   useEffect(() => {
+    if (needsOnboarding()) {
+      router.replace("/onboarding");
+      return;
+    }
+
     const partyId = getPreferences().supportedPartyId;
     setSelectedPartyId(null);
+    setOnboardingChecked(true);
     if (!partyId || ["none", "unknown", "other"].includes(partyId)) {
       setHeroPartyName(null);
       setHeroPartyId(null);
       return;
     }
     setHeroPartyId(partyId);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!heroPartyId) {
@@ -95,6 +104,10 @@ export function HomeView() {
   const articleSectionTitle = selectedPartyName
     ? `${selectedPartyName}のニュース`
     : "すべてのニュース";
+
+  if (!onboardingChecked) {
+    return <div className="empty-state">読み込み中...</div>;
+  }
 
   return (
     <div className="home-page">

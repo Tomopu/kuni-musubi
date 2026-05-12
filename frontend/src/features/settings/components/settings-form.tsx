@@ -21,8 +21,9 @@ import {
 } from "lucide-react";
 import {
   getPreferences,
-  savePreferences,
   resetPreferences,
+  savePreferences,
+  SKIPPED_INTEREST_CATEGORY_ID,
 } from "@/lib/storage/preferences-storage";
 import {
   AGE_GROUP_OPTIONS,
@@ -105,7 +106,9 @@ export function SettingsForm() {
     const prefs = getPreferences();
     setAgeGroup(prefs.ageGroup);
     setSupportedPartyId(prefs.supportedPartyId);
-    setInterestedCategoryIds(prefs.interestedCategoryIds);
+    setInterestedCategoryIds(
+      prefs.interestedCategoryIds.filter((id) => id !== SKIPPED_INTEREST_CATEGORY_ID),
+    );
   }, []);
 
   useEffect(() => {

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getPreferences } from "@/lib/storage/preferences-storage";
+import { getPreferences, needsOnboarding } from "@/lib/storage/preferences-storage";
 import {
   listArticles,
   type ArticleCardResponse,
@@ -50,7 +50,7 @@ export function HomePageClient() {
   // 1. 初期化処理: オンボーディング未完了ならリダイレクト
   useEffect(() => {
     const prefs = getPreferences();
-    if (!prefs.onboardingCompleted) {
+    if (needsOnboarding()) {
       router.replace("/onboarding");
       return;
     }
