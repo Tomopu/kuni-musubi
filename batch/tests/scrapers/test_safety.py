@@ -7,9 +7,14 @@ import time
 from unittest.mock import MagicMock, patch
 from urllib.robotparser import RobotFileParser
 
+import httpx
 import pytest
 
-from batch.scrapers.safety import DomainRateLimiter, check_robots_txt, compute_backoff_seconds
+from batch.scrapers.safety import (
+    DomainRateLimiter,
+    check_robots_txt,
+    compute_backoff_seconds,
+)
 
 
 class TestComputeBackoffSeconds:
@@ -85,43 +90,80 @@ class TestCheckRobotsTxt:
         """robots.txt がアクセスを許可している場合は True を返す。"""
         mock_rp = MagicMock(spec=RobotFileParser)
         mock_rp.can_fetch.return_value = True
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.text = "User-agent: *\nAllow: /"
 
-        with patch("batch.scrapers.safety.RobotFileParser", return_value=mock_rp):
+        with (
+            patch(
+                "batch.scrapers.safety.httpx.get",
+                return_value=mock_response,
+            ) as mock_get,
+            patch("batch.scrapers.safety.RobotFileParser", return_value=mock_rp),
+        ):
             result = check_robots_txt("https://example.com/rss", user_agent="TestBot")
 
         assert result is True
-        mock_rp.read.assert_called_once()
+        mock_get.assert_called_once_with(
+            "https://example.com/robots.txt",
+            headers={"User-Agent": "TestBot"},
+            timeout=10,
+            follow_redirects=True,
+        )
+        mock_rp.parse.assert_called_once_with(["User-agent: *", "Allow: /"])
         mock_rp.can_fetch.assert_called_once_with("TestBot", "https://example.com/rss")
 
     def test_denies_access_when_robots_disallows(self) -> None:
         """robots.txt がアクセスを禁止している場合は False を返す。"""
         mock_rp = MagicMock(spec=RobotFileParser)
         mock_rp.can_fetch.return_value = False
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.text = "User-agent: *\nDisallow: /rss"
 
-        with patch("batch.scrapers.safety.RobotFileParser", return_value=mock_rp):
+        with (
+            patch("batch.scrapers.safety.httpx.get", return_value=mock_response),
+            patch("batch.scrapers.safety.RobotFileParser", return_value=mock_rp),
+        ):
             result = check_robots_txt("https://example.com/rss", user_agent="TestBot")
 
         assert result is False
+        mock_rp.parse.assert_called_once_with(["User-agent: *", "Disallow: /rss"])
+        mock_rp.can_fetch.assert_called_once_with("TestBot", "https://example.com/rss")
 
     def test_returns_true_when_robots_fetch_fails(self) -> None:
         """robots.txt の取得に失敗した場合はフェイルオープンで True を返す。"""
-        mock_rp = MagicMock(spec=RobotFileParser)
-        mock_rp.read.side_effect = OSError("Connection refused")
-
-        with patch("batch.scrapers.safety.RobotFileParser", return_value=mock_rp):
+        with patch(
+            "batch.scrapers.safety.httpx.get",
+            side_effect=httpx.ConnectError("Connection refused"),
+        ):
             result = check_robots_txt("https://unreachable.example.com/rss")
 
         assert result is True
 
     def test_robots_url_is_built_from_feed_url(self) -> None:
-        """robots.txt の URL がフィード URL のルートドメインから生成されることを確認する。"""
+        """robots.txt の URL がフィード URL のルートドメインから生成される。"""
         mock_rp = MagicMock(spec=RobotFileParser)
         mock_rp.can_fetch.return_value = True
+        mock_response = MagicMock(spec=httpx.Response)
+        mock_response.status_code = 200
+        mock_response.text = "User-agent: *\nAllow: /"
 
-        with patch("batch.scrapers.safety.RobotFileParser", return_value=mock_rp):
+        with (
+            patch(
+                "batch.scrapers.safety.httpx.get",
+                return_value=mock_response,
+            ) as mock_get,
+            patch("batch.scrapers.safety.RobotFileParser", return_value=mock_rp),
+        ):
             check_robots_txt("https://www.example.co.jp/news/rss.xml")
 
-        mock_rp.set_url.assert_called_once_with("https://www.example.co.jp/robots.txt")
+        mock_get.assert_called_once_with(
+            "https://www.example.co.jp/robots.txt",
+            headers={"User-Agent": "Kuni-Musubi-Bot/1.0"},
+            timeout=10,
+            follow_redirects=True,
+        )
 
 
 class TestGetWithRetry:
@@ -182,7 +224,9 @@ class TestGetWithRetry:
             nonlocal call_count
             call_count += 1
             raise httpx.HTTPStatusError(
-                "429 Too Many Requests", request=mock_request, response=mock_response_429
+                "429 Too Many Requests",
+                request=mock_request,
+                response=mock_response_429,
             )
 
         mock_client = MagicMock(spec=httpx.Client)
