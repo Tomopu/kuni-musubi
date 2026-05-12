@@ -117,7 +117,7 @@ a {
 .app-logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
   color: var(--color-text-primary);
   font-size: 20px;
@@ -125,42 +125,11 @@ a {
   line-height: 1;
 }
 
-.app-logo__mark {
-  position: relative;
-  display: inline-block;
-  width: 30px;
-  height: 30px;
+.app-logo__image {
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
-}
-
-.app-logo__mark span {
-  position: absolute;
-  width: 18px;
-  height: 25px;
-  border: 2px solid;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
-}
-
-.app-logo__mark span:nth-child(1) {
-  left: 5px;
-  top: 0;
-  border-color: #ef3f42;
-  transform: rotate(28deg);
-}
-
-.app-logo__mark span:nth-child(2) {
-  left: 0;
-  top: 5px;
-  border-color: #00a9e0;
-  transform: rotate(-32deg);
-}
-
-.app-logo__mark span:nth-child(3) {
-  left: 11px;
-  top: 5px;
-  border-color: #96c93d;
-  transform: rotate(32deg);
+  object-fit: contain;
 }
 
 .app-header__nav {
@@ -585,6 +554,221 @@ a {
   border: 1px solid var(--color-border);
   background: #ffffff;
   color: var(--color-text-secondary);
+}
+
+.about-page {
+  display: grid;
+  gap: 18px;
+  padding: 28px 0 34px;
+}
+
+.about-hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+  border: 1px solid #f0df9e;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.9), transparent 110px),
+    linear-gradient(135deg, #fff8dc 0%, #eefaf3 100%);
+  padding: 24px;
+}
+
+.about-hero__text,
+.about-hero__visual {
+  position: relative;
+  z-index: 1;
+}
+
+.about-hero__text h1 {
+  color: var(--color-text-primary);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.about-hero__text p {
+  margin-top: 10px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+.about-hero__visual {
+  display: flex;
+  align-self: end;
+  align-items: flex-end;
+  justify-content: center;
+  margin-bottom: -24px;
+}
+
+.about-hero__mascot {
+  width: 142px;
+  height: 142px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(47, 125, 74, 0.15));
+}
+
+.about-hero__decor {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+.about-hero__decor--wakaba {
+  right: 150px;
+  bottom: -20px;
+  width: 96px;
+  height: auto;
+  opacity: 0.32;
+  transform: rotate(-12deg);
+}
+
+.about-hero__decor--paperplane {
+  top: 10px;
+  right: 30px;
+  width: 92px;
+  height: auto;
+  opacity: 0.58;
+}
+
+.about-items {
+  display: grid;
+  gap: 12px;
+}
+
+.about-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  border: 1px solid rgba(223, 230, 232, 0.88);
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 16px;
+  box-shadow: 0 8px 22px rgba(23, 55, 42, 0.05);
+}
+
+.about-card__icon {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.about-card__icon--green {
+  background: #dff6df;
+  color: #2f7d4a;
+}
+
+.about-card__icon--blue {
+  background: #dceeff;
+  color: #2877b9;
+}
+
+.about-card__icon--yellow {
+  background: #fff1bf;
+  color: #9b6d00;
+}
+
+.about-card__icon--pink {
+  background: #ffe3ee;
+  color: #c34772;
+}
+
+.about-card__icon--mint {
+  background: #d9f5ee;
+  color: #1f806f;
+}
+
+.about-card__icon--purple {
+  background: #ece4ff;
+  color: #7052c4;
+}
+
+.about-card__icon--orange {
+  background: #ffe4cf;
+  color: #c85f28;
+}
+
+.about-card h2 {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.about-card p {
+  margin-top: 6px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.85;
+}
+
+.about-closing {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border: 1px solid #cdebd6;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 94% 14%, rgba(255, 255, 255, 0.9), transparent 92px),
+    linear-gradient(135deg, #edfff5 0%, #fff8df 100%);
+  padding: 20px;
+}
+
+.about-closing__decor {
+  position: absolute;
+  right: -8px;
+  top: -14px;
+  width: 86px;
+  height: auto;
+  opacity: 0.38;
+  pointer-events: none;
+  user-select: none;
+}
+
+.about-closing__icon,
+.about-closing__text {
+  position: relative;
+  z-index: 1;
+}
+
+.about-closing__icon {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--color-brand-primary);
+  box-shadow: 0 8px 18px rgba(47, 125, 74, 0.13);
+}
+
+.about-closing h2 {
+  color: var(--color-text-primary);
+  font-size: clamp(18px, 2.4vw, 23px);
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.about-closing p {
+  margin-top: 8px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.75;
 }
 
 .home-page {
@@ -2135,9 +2319,76 @@ a {
   }
 
   .home-page,
+  .about-page,
   .onboarding-form,
   .party-list {
     gap: 18px;
+  }
+
+  .about-page {
+    padding: 20px 0 28px;
+  }
+
+  .about-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 20px 16px;
+  }
+
+  .about-hero__text h1 {
+    font-size: 22px;
+  }
+
+  .about-hero__text p {
+    font-size: 14px;
+  }
+
+  .about-hero__visual {
+    margin-bottom: -20px;
+  }
+
+  .about-hero__mascot {
+    width: 104px;
+    height: 104px;
+  }
+
+  .about-hero__decor--wakaba {
+    right: 90px;
+    width: 76px;
+  }
+
+  .about-hero__decor--paperplane {
+    right: 8px;
+    width: 62px;
+  }
+
+  .about-card {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .about-card__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .about-card h2 {
+    font-size: 15px;
+  }
+
+  .about-card p,
+  .about-closing p {
+    font-size: 14px;
+  }
+
+  .about-closing {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .about-closing__icon {
+    width: 48px;
+    height: 48px;
   }
 
   .home-hero__content {
@@ -2176,10 +2427,17 @@ a {
   }
 
   .content-section-head h2,
+  .about-card h2,
   .party-list-section h2,
   .detail-card h2,
   .related-news h2 {
     font-size: 18px;
+  }
+
+  .about-hero__text p,
+  .about-card p,
+  .about-closing p {
+    font-size: 15px;
   }
 }
 

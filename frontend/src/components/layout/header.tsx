@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Info, Landmark, Settings } from "lucide-react";
 
 export function Header() {
@@ -6,11 +7,15 @@ export function Header() {
     <header className="app-header">
       <div className="app-header__inner">
         <Link href="/" className="app-logo" aria-label="Kuni-Musubi ホーム">
-          <span className="app-logo__mark" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
+          <Image
+            src="/assets/logo/kuni-musubi-logo.png"
+            alt=""
+            width={36}
+            height={36}
+            className="app-logo__image"
+            priority
+            aria-hidden="true"
+          />
           <span>Kuni-Musubi</span>
         </Link>
 
