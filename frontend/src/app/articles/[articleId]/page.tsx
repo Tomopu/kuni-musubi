@@ -11,6 +11,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { getArticleDetail } from "@/lib/api/articles-api";
+import { MarkdownContent } from "@/components/ui/markdown-content";
 import { PageContainer } from "@/components/layout/page-container";
 import { PartyBadge } from "@/components/ui/party-badge";
 import { CategoryTag } from "@/components/ui/category-tag";
@@ -122,9 +123,9 @@ export default async function ArticleDetailPage({ params }: Props) {
             <SectionHeading icon={<Star size={19} />} tone="good">
               何が Good News なのか？
             </SectionHeading>
-            <p>
+            <MarkdownContent>
               {article.display_content.positive_point}
-            </p>
+            </MarkdownContent>
           </section>
 
           {/* 生活への影響 */}
@@ -132,9 +133,9 @@ export default async function ArticleDetailPage({ params }: Props) {
             <SectionHeading icon={<Heart size={19} />} tone="life">
               我々の生活への影響
             </SectionHeading>
-            <p>
+            <MarkdownContent>
               {article.display_content.life_impact}
-            </p>
+            </MarkdownContent>
           </section>
 
           {/* 残る課題（番号付きリスト） */}
@@ -149,7 +150,7 @@ export default async function ArticleDetailPage({ params }: Props) {
                     <span>
                       {i + 1}.
                     </span>
-                    <span>{issue}</span>
+                    <span><MarkdownContent>{issue}</MarkdownContent></span>
                   </li>
                 ))}
               </ol>
@@ -162,9 +163,9 @@ export default async function ArticleDetailPage({ params }: Props) {
               <SectionHeading icon={<UsersRound size={19} />} tone="reaction">
                 世論・与野党からの評価
               </SectionHeading>
-              <p>
+              <MarkdownContent>
                 {article.display_content.public_reactions_summary}
-              </p>
+              </MarkdownContent>
             </section>
           )}
         </div>
