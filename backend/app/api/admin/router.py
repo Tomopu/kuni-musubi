@@ -3,7 +3,7 @@
 import json
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 from urllib.parse import quote
@@ -41,12 +41,16 @@ from app.infrastructure.db.models import (
     PolicyCategory,
     article_parties,
 )
+from app.infrastructure.db.dev_schema import ensure_dev_schema
+from app.infrastructure.db.session import engine
 from app.infrastructure.db.session import get_db
+from app.usecases.party_field_utils import normalize_text_list, text_list_lines
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 _TEMPLATES_DIR = Path(__file__).parent.parent.parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
+templates.env.filters["text_list_lines"] = text_list_lines
 
 PAGE_SIZE = 20
 PARTIES_EXPORT_PATH = (
@@ -56,6 +60,7 @@ PARTIES_EXPORT_PATH = (
     / "data"
     / "parties_export.json"
 )
+_ADMIN_PARTY_SCHEMA_READY = False
 
 
 def _redirect_with_msg(path: str, msg: str, msg_type: str = "success"):
@@ -67,6 +72,27 @@ def _redirect_with_msg(path: str, msg: str, msg_type: str = "success"):
 def _split_lines(text: str) -> list[str]:
     """改行区切りのテキストを配列に変換する。"""
     return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def _parse_date(value: str | None) -> date | None:
+    """フォームの日付文字列を date に変換する。"""
+    if not value:
+        return None
+    return date.fromisoformat(value)
+
+
+def _fallback_text_lines(primary: str, fallback: str) -> list[str]:
+    """primary が空なら fallback の改行リストを返す。"""
+    primary_lines = normalize_text_list(primary)
+    return primary_lines if primary_lines else normalize_text_list(fallback)
+
+
+def _fallback_summary(primary: str, fallback_lines: str) -> str | None:
+    """primary が空なら fallback_lines の改行リストから要約を作る。"""
+    if primary:
+        return primary
+    lines = normalize_text_list(fallback_lines)
+    return "\n".join(lines) or None
 
 
 def _normalize_article_status(status: str | None) -> str:
@@ -101,7 +127,7 @@ def _to_json_value(value):
     """UUID / datetime などを JSON へ安全に変換する。"""
     if isinstance(value, uuid.UUID):
         return str(value)
-    if isinstance(value, datetime):
+    if isinstance(value, (date, datetime)):
         return value.isoformat()
     return value
 
@@ -121,8 +147,17 @@ def _party_to_export_dict(party: Party) -> dict:
         "house_of_councillors_seats": party.house_of_councillors_seats,
         "ideology_summary": party.ideology_summary,
         "manifesto_summary": party.manifesto_summary,
-        "manifesto_promises": list(party.manifesto_promises or []),
-        "main_policy_categories": list(party.main_policy_categories or []),
+        "manifesto_promises": normalize_text_list(party.manifesto_promises),
+        "main_policy_categories": normalize_text_list(party.main_policy_categories),
+        "policy_headline": party.policy_headline,
+        "policy_headline_type": party.policy_headline_type,
+        "policy_pillars": normalize_text_list(party.policy_pillars),
+        "main_policy_tags": normalize_text_list(party.main_policy_tags),
+        "policy_source_type": party.policy_source_type,
+        "policy_source_label": party.policy_source_label,
+        "policy_source_url": party.policy_source_url,
+        "policy_last_checked": _to_json_value(party.policy_last_checked),
+        "policy_note": party.policy_note,
         "official_url": party.official_url,
         "created_at": _to_json_value(party.created_at),
         "updated_at": _to_json_value(party.updated_at),
@@ -140,6 +175,44 @@ def _write_parties_export(parties: list[Party], export_path: Path | None = None)
         encoding="utf-8",
     )
     return export_path
+
+
+def _ensure_admin_party_schema_ready() -> None:
+    """政党管理画面で使う追加カラムをローカル開発DBに反映する。"""
+    global _ADMIN_PARTY_SCHEMA_READY
+    if _ADMIN_PARTY_SCHEMA_READY:
+        return
+    if os.getenv("SKIP_DB_INIT", "").lower() in {"1", "true", "yes"}:
+        _ADMIN_PARTY_SCHEMA_READY = True
+        return
+    ensure_dev_schema(engine)
+    _ADMIN_PARTY_SCHEMA_READY = True
+
+
+def _repair_party_array_fields(db: Session) -> None:
+    """壊れた TEXT[] 値を検出し、正しい項目配列として保存し直す。"""
+    changed = False
+    for party in db.query(Party).all():
+        for field_name in (
+            "manifesto_promises",
+            "main_policy_categories",
+            "policy_pillars",
+            "main_policy_tags",
+        ):
+            current = getattr(party, field_name)
+            normalized = normalize_text_list(current)
+            current_list = list(current or []) if not isinstance(current, str) else current
+            if current_list != normalized:
+                setattr(party, field_name, normalized)
+                changed = True
+        policy_pillars = normalize_text_list(party.policy_pillars)
+        if policy_pillars:
+            manifesto_summary = "\n".join(policy_pillars)
+            if party.manifesto_summary != manifesto_summary:
+                party.manifesto_summary = manifesto_summary
+                changed = True
+    if changed:
+        db.commit()
 
 
 # ---------------------------------------------------------------------------
@@ -579,6 +652,8 @@ def parties_list(request: Request, db: Session = Depends(get_db)):
     admin = get_current_admin(request, db)
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
+    _ensure_admin_party_schema_ready()
+    _repair_party_array_fields(db)
     # 2. 政党一覧を取得する
     parties = db.query(Party).order_by(Party.display_order).all()
     return templates.TemplateResponse(
@@ -600,6 +675,8 @@ def parties_export_json(request: Request, db: Session = Depends(get_db)):
     admin = get_current_admin(request, db)
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
+    _ensure_admin_party_schema_ready()
+    _repair_party_array_fields(db)
     try:
         # 2. 現在の parties テーブルを表示順で取得して JSON 保存する
         parties = db.query(Party).order_by(Party.display_order).all()
@@ -627,6 +704,7 @@ def parties_new_page(request: Request, db: Session = Depends(get_db)):
     admin = get_current_admin(request, db)
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
+    _ensure_admin_party_schema_ready()
     return templates.TemplateResponse(
         request=request,
         name="admin/parties/form.html",
@@ -651,12 +729,22 @@ def parties_create(
     manifesto_summary: str = Form(""),
     manifesto_promises: str = Form(""),
     main_policy_categories: str = Form(""),
+    policy_headline: str = Form(""),
+    policy_headline_type: str = Form(""),
+    policy_pillars: str = Form(""),
+    main_policy_tags: str = Form(""),
+    policy_source_type: str = Form(""),
+    policy_source_label: str = Form(""),
+    policy_source_url: str = Form(""),
+    policy_last_checked: str = Form(""),
+    policy_note: str = Form(""),
     official_url: str = Form(""),
 ):
     # 1. 認証ガード
     admin = get_current_admin(request, db)
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
+    _ensure_admin_party_schema_ready()
     try:
         # 2. 政党を作成する
         party = Party(
@@ -669,10 +757,21 @@ def parties_create(
             leader_name=leader_name or None,
             house_of_representatives_seats=int(house_of_representatives_seats) if house_of_representatives_seats else None,
             house_of_councillors_seats=int(house_of_councillors_seats) if house_of_councillors_seats else None,
-            ideology_summary=ideology_summary or None,
-            manifesto_summary=manifesto_summary or None,
-            manifesto_promises=_split_lines(manifesto_promises),
-            main_policy_categories=_split_lines(main_policy_categories),
+            ideology_summary=ideology_summary or policy_headline or None,
+            manifesto_summary=_fallback_summary(manifesto_summary, policy_pillars),
+            manifesto_promises=_fallback_text_lines(manifesto_promises, policy_pillars),
+            main_policy_categories=_fallback_text_lines(
+                main_policy_categories, main_policy_tags
+            ),
+            policy_headline=policy_headline or None,
+            policy_headline_type=policy_headline_type or None,
+            policy_pillars=normalize_text_list(policy_pillars),
+            main_policy_tags=normalize_text_list(main_policy_tags),
+            policy_source_type=policy_source_type or None,
+            policy_source_label=policy_source_label or None,
+            policy_source_url=policy_source_url or None,
+            policy_last_checked=_parse_date(policy_last_checked),
+            policy_note=policy_note or None,
             official_url=official_url or None,
         )
         db.add(party)
@@ -693,6 +792,8 @@ def parties_edit_page(
     admin = get_current_admin(request, db)
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
+    _ensure_admin_party_schema_ready()
+    _repair_party_array_fields(db)
     # 2. 政党を取得する
     party = db.query(Party).filter(Party.id == party_id).first()
     if not party:
@@ -722,12 +823,22 @@ def parties_update(
     manifesto_summary: str = Form(""),
     manifesto_promises: str = Form(""),
     main_policy_categories: str = Form(""),
+    policy_headline: str = Form(""),
+    policy_headline_type: str = Form(""),
+    policy_pillars: str = Form(""),
+    main_policy_tags: str = Form(""),
+    policy_source_type: str = Form(""),
+    policy_source_label: str = Form(""),
+    policy_source_url: str = Form(""),
+    policy_last_checked: str = Form(""),
+    policy_note: str = Form(""),
     official_url: str = Form(""),
 ):
     # 1. 認証ガード
     admin = get_current_admin(request, db)
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
+    _ensure_admin_party_schema_ready()
     try:
         # 2. 政党を取得する
         party = db.query(Party).filter(Party.id == party_id).first()
@@ -743,10 +854,23 @@ def parties_update(
         party.leader_name = leader_name or None
         party.house_of_representatives_seats = int(house_of_representatives_seats) if house_of_representatives_seats else None
         party.house_of_councillors_seats = int(house_of_councillors_seats) if house_of_councillors_seats else None
-        party.ideology_summary = ideology_summary or None
-        party.manifesto_summary = manifesto_summary or None
-        party.manifesto_promises = _split_lines(manifesto_promises)
-        party.main_policy_categories = _split_lines(main_policy_categories)
+        party.ideology_summary = ideology_summary or policy_headline or None
+        party.manifesto_summary = _fallback_summary(manifesto_summary, policy_pillars)
+        party.manifesto_promises = _fallback_text_lines(
+            manifesto_promises, policy_pillars
+        )
+        party.main_policy_categories = _fallback_text_lines(
+            main_policy_categories, main_policy_tags
+        )
+        party.policy_headline = policy_headline or None
+        party.policy_headline_type = policy_headline_type or None
+        party.policy_pillars = normalize_text_list(policy_pillars)
+        party.main_policy_tags = normalize_text_list(main_policy_tags)
+        party.policy_source_type = policy_source_type or None
+        party.policy_source_label = policy_source_label or None
+        party.policy_source_url = policy_source_url or None
+        party.policy_last_checked = _parse_date(policy_last_checked)
+        party.policy_note = policy_note or None
         party.official_url = official_url or None
         db.commit()
         return _redirect_with_msg("/admin/parties", "政党を更新しました")
@@ -765,6 +889,7 @@ def parties_delete(
     admin = get_current_admin(request, db)
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
+    _ensure_admin_party_schema_ready()
     try:
         # 2. 政党を取得して削除する
         party = db.query(Party).filter(Party.id == party_id).first()
