@@ -5,7 +5,17 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h2 class="fs-4 fw-bold mb-0">政党管理</h2>
-  <a href="/admin/parties/new" class="btn btn-primary btn-sm">新規作成</a>
+  <div class="d-flex gap-2">
+    <form action="/admin/parties/export-json" method="post"
+          onsubmit="return confirm('現在の政党データを JSON ファイルとして保存します。よろしいですか？');">
+      <button type="submit" class="btn btn-outline-success btn-sm">JSON保存</button>
+    </form>
+    <a href="/admin/parties/new" class="btn btn-primary btn-sm">新規作成</a>
+  </div>
+</div>
+
+<div class="alert alert-light border small text-muted" role="note">
+  JSON保存先: <code>{{ parties_export_path }}</code>
 </div>
 
 <div class="card">

@@ -49,6 +49,13 @@ _TEMPLATES_DIR = Path(__file__).parent.parent.parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 PAGE_SIZE = 20
+PARTIES_EXPORT_PATH = (
+    Path(__file__).resolve().parents[4]
+    / "docs"
+    / "research"
+    / "data"
+    / "parties_export.json"
+)
 
 
 def _redirect_with_msg(path: str, msg: str, msg_type: str = "success"):
@@ -88,6 +95,51 @@ def _parse_party_ids(party_ids: list[str]) -> list[uuid.UUID]:
         parsed.append(pid)
         seen.add(pid)
     return parsed
+
+
+def _to_json_value(value):
+    """UUID / datetime などを JSON へ安全に変換する。"""
+    if isinstance(value, uuid.UUID):
+        return str(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return value
+
+
+def _party_to_export_dict(party: Party) -> dict:
+    """parties テーブルの1行を JSON 保存用の dict に変換する。"""
+    return {
+        "id": _to_json_value(party.id),
+        "name": party.name,
+        "short_name": party.short_name,
+        "color_hex": party.color_hex,
+        "is_active": party.is_active,
+        "display_order": party.display_order,
+        "founded_year": party.founded_year,
+        "leader_name": party.leader_name,
+        "house_of_representatives_seats": party.house_of_representatives_seats,
+        "house_of_councillors_seats": party.house_of_councillors_seats,
+        "ideology_summary": party.ideology_summary,
+        "manifesto_summary": party.manifesto_summary,
+        "manifesto_promises": list(party.manifesto_promises or []),
+        "main_policy_categories": list(party.main_policy_categories or []),
+        "official_url": party.official_url,
+        "created_at": _to_json_value(party.created_at),
+        "updated_at": _to_json_value(party.updated_at),
+    }
+
+
+def _write_parties_export(parties: list[Party], export_path: Path | None = None) -> Path:
+    """現在の parties テーブル内容を JSON ファイルに保存する。"""
+    if export_path is None:
+        export_path = PARTIES_EXPORT_PATH
+    export_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = [_party_to_export_dict(party) for party in parties]
+    export_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return export_path
 
 
 # ---------------------------------------------------------------------------
@@ -532,8 +584,41 @@ def parties_list(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse(
         request=request,
         name="admin/parties/list.html",
-        context={"parties": parties, "admin": admin},
+        context={
+            "parties": parties,
+            "admin": admin,
+            "parties_export_path": PARTIES_EXPORT_PATH.relative_to(
+                Path(__file__).resolve().parents[4]
+            ),
+        },
     )
+
+
+@router.post("/parties/export-json")
+def parties_export_json(request: Request, db: Session = Depends(get_db)):
+    # 1. 認証ガード
+    admin = get_current_admin(request, db)
+    if not admin:
+        return RedirectResponse("/admin/login", status_code=302)
+    try:
+        # 2. 現在の parties テーブルを表示順で取得して JSON 保存する
+        parties = db.query(Party).order_by(Party.display_order).all()
+        export_path = _write_parties_export(parties)
+        repo_root = Path(__file__).resolve().parents[4]
+        try:
+            relative_path = export_path.relative_to(repo_root)
+        except ValueError:
+            relative_path = export_path
+        return _redirect_with_msg(
+            "/admin/parties",
+            f"{len(parties)} 件の政党データを {relative_path} に保存しました",
+        )
+    except Exception as e:
+        return _redirect_with_msg(
+            "/admin/parties",
+            f"JSON保存でエラーが発生しました: {e}",
+            "error",
+        )
 
 
 @router.get("/parties/new", response_class=HTMLResponse)
