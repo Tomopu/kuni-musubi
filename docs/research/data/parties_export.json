@@ -1,0 +1,371 @@
+[
+  {
+    "id": "11111111-0000-0000-0000-000000000001",
+    "name": "自由民主党",
+    "short_name": "自民",
+    "color_hex": "#E60012",
+    "is_active": true,
+    "display_order": 1,
+    "founded_year": 1955,
+    "leader_name": "高市 早苗",
+    "house_of_representatives_seats": 316,
+    "house_of_councillors_seats": 101,
+    "ideology_summary": "保守本流。「責任ある積極財政」",
+    "manifesto_summary": "1. 強い経済で、笑顔あふれる暮らしを。～低成長、予算単年度主義、経済利圧の壁を超える～\n2. 地方が日本経済のエンジンに。～都市集中の壁を超える～\n3. わが国を守る責任。国際秩序を担う日本外交。～国際社会分断の壁を超える～\n4. すべての世代の安心と次世代への責任。～人口減少の壁を超える～\n5. 時代にふさわしい新しい憲法を、私たちの手で。",
+    "manifesto_promises": [
+      "1. 強い経済で、笑顔あふれる暮らしを。～低成長、予算単年度主義、経済利圧の壁を超える～",
+      "2. 地方が日本経済のエンジンに。～都市集中の壁を超える～",
+      "3. わが国を守る責任。国際秩序を担う日本外交。～国際社会分断の壁を超える～",
+      "4. すべての世代の安心と次世代への責任。～人口減少の壁を超える～",
+      "5. 時代にふさわしい新しい憲法を、私たちの手で。"
+    ],
+    "main_policy_categories": [
+      "安全保障",
+      "経済成長",
+      "憲法改正",
+      "外国人政策"
+    ],
+    "official_url": "https://www.jimin.jp/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-10T03:55:58.635321+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000003",
+    "name": "日本維新の会",
+    "short_name": "維新",
+    "color_hex": "#98C93C",
+    "is_active": true,
+    "display_order": 2,
+    "founded_year": 2015,
+    "leader_name": "馬場 伸幸 / 藤田 文武 等",
+    "house_of_representatives_seats": 36,
+    "house_of_councillors_seats": 19,
+    "ideology_summary": "身を切る改革、地方分権の推進",
+    "manifesto_summary": "偽装難民問題、難民等認定制度の改革など",
+    "manifesto_promises": [
+      "偽装難民問題、難民等認定制度の改革など"
+    ],
+    "main_policy_categories": [
+      "行財政改革",
+      "難民等認定制度改革",
+      "地方自治"
+    ],
+    "official_url": "https://o-ishin.jp/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-10T03:55:58.635321+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000004",
+    "name": "国民民主党",
+    "short_name": "国民",
+    "color_hex": "#F3C600",
+    "is_active": true,
+    "display_order": 3,
+    "founded_year": 2020,
+    "leader_name": "玉木 雄一郎",
+    "house_of_representatives_seats": 16,
+    "house_of_councillors_seats": 34,
+    "ideology_summary": "「対決より解決」「正直な政治をつらぬく」3",
+    "manifesto_summary": "「『もっと』手取りを増やす」\n消費税一律5%、インボイス廃止、130万円の壁突破助成金、ガソリン暫定税率廃止、電気代値下げ（再エネ賦課金廃止）",
+    "manifesto_promises": [
+      "「『もっと』手取りを増やす」",
+      "消費税一律5%、インボイス廃止、130万円の壁突破助成金、ガソリン暫定税率廃止、電気代値下げ（再エネ賦課金廃止）"
+    ],
+    "main_policy_categories": [
+      "税制・財政（減税）",
+      "社会保障軽減",
+      "憲法改正"
+    ],
+    "official_url": "https://new-kokumin.jp/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000011",
+    "name": "中道改革連合",
+    "short_name": "中道",
+    "color_hex": "#0064A8",
+    "is_active": true,
+    "display_order": 4,
+    "founded_year": 2026,
+    "leader_name": "小川 淳也",
+    "house_of_representatives_seats": 49,
+    "house_of_councillors_seats": 0,
+    "ideology_summary": "「生活者ファースト、くらしを真ん中へ」「生命・生活・生存を最大に尊重する人間主義」",
+    "manifesto_summary": "持続的な経済成長への政策転換\n新たな社会保障モデルの構築\n包摂社会の実現\n現実的な外交・防衛政策と憲法改正論議の深化\n不断の政治改革",
+    "manifesto_promises": [
+      "持続的な経済成長への政策転換",
+      "新たな社会保障モデルの構築",
+      "包摂社会の実現",
+      "現実的な外交・防衛政策と憲法改正論議の深化",
+      "不断の政治改革"
+    ],
+    "main_policy_categories": [
+      "経済・物価対策",
+      "社会保障",
+      "包摂社会",
+      "政治改革"
+    ],
+    "official_url": "https://craj.jp/",
+    "created_at": "2026-05-04T01:50:17.910891+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000002",
+    "name": "立憲民主党",
+    "short_name": "立憲",
+    "color_hex": "#1A3382",
+    "is_active": true,
+    "display_order": 5,
+    "founded_year": 2020,
+    "leader_name": "水岡 俊一",
+    "house_of_representatives_seats": 0,
+    "house_of_councillors_seats": 38,
+    "ideology_summary": "ボトムアップの政治、多様性の尊重",
+    "manifesto_summary": null,
+    "manifesto_promises": [],
+    "main_policy_categories": [
+      "労働・雇用",
+      "多様性尊重",
+      "ジェンダー平等"
+    ],
+    "official_url": "https://cdp-japan.jp/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000005",
+    "name": "参政党",
+    "short_name": "参政",
+    "color_hex": "#EB6100",
+    "is_active": true,
+    "display_order": 6,
+    "founded_year": 2020,
+    "leader_name": "神谷 宗幣",
+    "house_of_representatives_seats": 15,
+    "house_of_councillors_seats": 15,
+    "ideology_summary": "「僕らは日本をあきらめない！」特定の利権に縛られない国民主体の政治",
+    "manifesto_summary": "「教育・人づくり」「食と健康・環境保全」「国のまもり（NO!移民国家）」\n国民負担率35%への抑制",
+    "manifesto_promises": [
+      "「教育・人づくり」「食と健康・環境保全」「国のまもり（NO!移民国家）」",
+      "国民負担率35%への抑制"
+    ],
+    "main_policy_categories": [
+      "教育・人づくり",
+      "食と健康",
+      "国防",
+      "移民制限"
+    ],
+    "official_url": "https://www.sanseito.jp/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000010",
+    "name": "公明党",
+    "short_name": "公明",
+    "color_hex": "#0D3370",
+    "is_active": true,
+    "display_order": 7,
+    "founded_year": 1964,
+    "leader_name": "竹谷 とし子",
+    "house_of_representatives_seats": 0,
+    "house_of_councillors_seats": 21,
+    "ideology_summary": "大衆とともに語り、大衆とともに戦う",
+    "manifesto_summary": null,
+    "manifesto_promises": [],
+    "main_policy_categories": [
+      "福祉・社会保障",
+      "平和外交",
+      "生活者支援"
+    ],
+    "official_url": "https://www.komei.or.jp/",
+    "created_at": "2026-05-04T01:50:17.910891+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000009",
+    "name": "チームみらい",
+    "short_name": "チみ",
+    "color_hex": "#84D6CD",
+    "is_active": true,
+    "display_order": 8,
+    "founded_year": 2025,
+    "leader_name": "安野 貴博",
+    "house_of_representatives_seats": 11,
+    "house_of_councillors_seats": 2,
+    "ideology_summary": "「テクノロジーで政治をかえる。あなたと一緒に未来をつくる。」",
+    "manifesto_summary": "企業・団体献金0円\nみらいまる見え政治資金\nみらい議会\nAI時代における科学技術投資",
+    "manifesto_promises": [
+      "企業・団体献金0円",
+      "みらいまる見え政治資金",
+      "みらい議会",
+      "AI時代における科学技術投資"
+    ],
+    "main_policy_categories": [
+      "科学技術投資",
+      "政治の透明化",
+      "AI活用",
+      "成長戦略"
+    ],
+    "official_url": "https://team-mir.ai/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000006",
+    "name": "日本共産党",
+    "short_name": "共産",
+    "color_hex": "#DF1B22",
+    "is_active": true,
+    "display_order": 9,
+    "founded_year": 1922,
+    "leader_name": "田村 智子",
+    "house_of_representatives_seats": 4,
+    "house_of_councillors_seats": 7,
+    "ideology_summary": "「民主主義と自由、反戦平和をブレずにつらぬく」",
+    "manifesto_summary": "「物価高騰を上まわる大幅賃上げ」「賃上げと一体に、労働時間を短縮し『自由な時間』を増やします」\n難民行政の切り離し",
+    "manifesto_promises": [
+      "「物価高騰を上まわる大幅賃上げ」「賃上げと一体に、労働時間を短縮し『自由な時間』を増やします」",
+      "難民行政の切り離し"
+    ],
+    "main_policy_categories": [
+      "平和行政",
+      "難民保護",
+      "ジェンダー",
+      "労働"
+    ],
+    "official_url": "https://www.jcp.or.jp/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000007",
+    "name": "れいわ新選組",
+    "short_name": "れい",
+    "color_hex": "#E4007F",
+    "is_active": true,
+    "display_order": 10,
+    "founded_year": 2019,
+    "leader_name": "山本 太郎",
+    "house_of_representatives_seats": 1,
+    "house_of_councillors_seats": 6,
+    "ideology_summary": "「日本を守る、とはあなたを守ることから始まる」10。「生きていて良かったと思えるような社会を」",
+    "manifesto_summary": "「消費税はさっさと廃止で景気をアゲる！」\n「今すぐつなぎの現金１０万円」\n「社会保険料は国のお金で引き下げる」\n「ガソリン税ゼロ」",
+    "manifesto_promises": [
+      "「消費税はさっさと廃止で景気をアゲる！」",
+      "「今すぐつなぎの現金１０万円」",
+      "「社会保険料は国のお金で引き下げる」",
+      "「ガソリン税ゼロ」"
+    ],
+    "main_policy_categories": [
+      "消費税廃止",
+      "現金給付",
+      "地方財政拡充",
+      "難民保護"
+    ],
+    "official_url": "https://reiwa-shinsengumi.com/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000012",
+    "name": "日本保守党",
+    "short_name": "保守",
+    "color_hex": "#0073CE",
+    "is_active": true,
+    "display_order": 11,
+    "founded_year": 2023,
+    "leader_name": "百田 尚樹",
+    "house_of_representatives_seats": 0,
+    "house_of_councillors_seats": 2,
+    "ideology_summary": "「日本を豊かに、強く。」「奇跡の国体」と伝統の守護",
+    "manifesto_summary": "「食料品の消費税ゼロ」\n「再エネ賦課金廃止」\n「移民政策の真実」\n「憲法9条2項削除」\n「スパイ防止法制定」\n「議員の世襲禁止」",
+    "manifesto_promises": [
+      "「食料品の消費税ゼロ」",
+      "「再エネ賦課金廃止」",
+      "「移民政策の真実」",
+      "「憲法9条2項削除」",
+      "「スパイ防止法制定」",
+      "「議員の世襲禁止」"
+    ],
+    "main_policy_categories": [
+      "国体護持",
+      "再エネ賦課金廃止",
+      "憲法改正",
+      "移民制限"
+    ],
+    "official_url": "https://hoshuto.jp/",
+    "created_at": "2026-05-04T01:50:17.910891+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000008",
+    "name": "社会民主党",
+    "short_name": "社民",
+    "color_hex": "#00A1E9",
+    "is_active": true,
+    "display_order": 12,
+    "founded_year": 1996,
+    "leader_name": "福島 みずほ",
+    "house_of_representatives_seats": 0,
+    "house_of_councillors_seats": 2,
+    "ideology_summary": "がんこに平和、くらしが一番",
+    "manifesto_summary": "移民、難民を排除しない",
+    "manifesto_promises": [
+      "移民、難民を排除しない"
+    ],
+    "main_policy_categories": [
+      "護憲",
+      "労働者保護",
+      "難民・移民との共生"
+    ],
+    "official_url": "https://sdp.or.jp/",
+    "created_at": "2026-05-03T18:55:31.039041+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000013",
+    "name": "減税日本・ゆうこく連合",
+    "short_name": "減税",
+    "color_hex": "#3A4075",
+    "is_active": true,
+    "display_order": 13,
+    "founded_year": 2026,
+    "leader_name": "河村 たかし / 原口 一博",
+    "house_of_representatives_seats": 1,
+    "house_of_councillors_seats": 0,
+    "ideology_summary": "徹底した減税と既得権益の打破",
+    "manifesto_summary": "消費税廃止",
+    "manifesto_promises": [
+      "消費税廃止"
+    ],
+    "main_policy_categories": [
+      "消費税廃止",
+      "減税",
+      "地方自治"
+    ],
+    "official_url": "https://genzeinippon.com/",
+    "created_at": "2026-05-04T01:50:17.910891+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  },
+  {
+    "id": "11111111-0000-0000-0000-000000000014",
+    "name": "無所属",
+    "short_name": "無所属",
+    "color_hex": "#999999",
+    "is_active": true,
+    "display_order": 14,
+    "founded_year": null,
+    "leader_name": null,
+    "house_of_representatives_seats": 4,
+    "house_of_councillors_seats": 9,
+    "ideology_summary": null,
+    "manifesto_summary": null,
+    "manifesto_promises": [],
+    "main_policy_categories": [],
+    "official_url": null,
+    "created_at": "2026-05-04T01:50:17.910891+00:00",
+    "updated_at": "2026-05-04T01:50:17.910891+00:00"
+  }
+]
