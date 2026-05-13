@@ -102,8 +102,10 @@ export default async function PartiesPage() {
             const representatives = party.house_of_representatives_seats ?? 0;
             const councillors = party.house_of_councillors_seats ?? 0;
             const categories =
-              party.main_policy_categories?.length
-                ? party.main_policy_categories.slice(0, 3)
+              party.main_policy_tags?.length
+                ? party.main_policy_tags.slice(0, 3)
+                : party.main_policy_categories?.length
+                  ? party.main_policy_categories.slice(0, 3)
                 : FALLBACK_POLICY_CATEGORIES_BY_NAME[party.name] ?? [];
 
             return (

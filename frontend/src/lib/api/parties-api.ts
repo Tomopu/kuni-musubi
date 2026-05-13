@@ -10,6 +10,7 @@ export type PartyResponse = {
   house_of_representatives_seats: number | null;
   house_of_councillors_seats: number | null;
   total_seats: number;
+  main_policy_tags?: string[];
   main_policy_categories?: string[];
 };
 
@@ -20,6 +21,15 @@ export type PartyDetailResponse = PartyResponse & {
   ideology_summary: string | null;
   manifesto_summary: string | null;
   manifesto_promises?: string[];
+  policy_headline: string | null;
+  policy_headline_type: string | null;
+  policy_pillars?: string[];
+  main_policy_tags?: string[];
+  policy_source_type: string | null;
+  policy_source_label: string | null;
+  policy_source_url: string | null;
+  policy_last_checked: string | null;
+  policy_note: string | null;
   main_policy_categories?: string[];
   official_url: string | null;
   latest_articles?: ArticleCardResponse[];

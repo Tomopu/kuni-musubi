@@ -1868,6 +1868,18 @@ a {
   color: #2563eb;
 }
 
+.party-official-link--inline {
+  display: inline-flex;
+  margin-top: 10px;
+  color: #2563eb;
+}
+
+.party-official-link--inline strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .detail-card {
   border: 1px solid color-mix(in srgb, var(--party-color) 24%, var(--color-border));
   border-radius: 16px;
@@ -1896,18 +1908,32 @@ a {
 .manifesto-list {
   display: grid;
   gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   counter-reset: manifesto;
 }
 
 .manifesto-list li {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 23px minmax(0, 1fr);
   gap: 10px;
+  min-width: 0;
   color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.75;
   counter-increment: manifesto;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+}
+
+.manifesto-list li span {
+  min-width: 0;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .manifesto-list li::before {
@@ -1955,10 +1981,102 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
+}
+
+.policy-tags span {
+  flex: 0 0 auto;
+  max-width: 100%;
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
 
 .related-news {
   margin-top: 18px;
+}
+
+.policy-source-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--party-color, var(--color-brand-primary)) 18%, var(--color-border));
+}
+
+.policy-source-footer a,
+.policy-source-footer span,
+.policy-source-footer p {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.policy-source-footer a {
+  color: #2563eb;
+}
+
+.policy-source-footer p {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: right;
+  line-height: 1.6;
+}
+
+.seat-count-footnote {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.seat-count-footnote__sources {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.seat-count-footnote__sources p {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.seat-count-footnote__sources a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #2563eb;
+  font-size: 12px;
+}
+
+.seat-count-footnote__date {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+.seat-count-footnote__note {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+@media (max-width: 600px) {
+  .policy-source-footer {
+    align-items: flex-start;
+  }
+
+  .policy-source-footer p {
+    text-align: left;
+  }
 }
 
 .related-news__head {
