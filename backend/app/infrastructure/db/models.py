@@ -6,6 +6,7 @@ from sqlalchemy import (
     ARRAY,
     Boolean,
     Column,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -69,6 +70,19 @@ class Party(Base):
     main_policy_categories: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=list
     )
+    policy_headline: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    policy_headline_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    policy_pillars: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=False, default=list
+    )
+    main_policy_tags: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=False, default=list
+    )
+    policy_source_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    policy_source_label: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    policy_source_url: Mapped[Optional[str]] = mapped_column(String(2048), nullable=True)
+    policy_last_checked: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    policy_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     official_url: Mapped[Optional[str]] = mapped_column(String(2048), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
