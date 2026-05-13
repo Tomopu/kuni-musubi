@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Sparkles } from "lucide-react";
-import { MascotImage } from "@/components/ui/mascot-image";
 import { PageContainer } from "@/components/layout/page-container";
 import { SeatOverview } from "@/features/parties/components/seat-overview";
 import type { ChartSegment } from "@/features/parties/components/semi-donut-chart";
@@ -59,6 +59,22 @@ export default async function PartiesPage() {
   return (
     <PageContainer className="parties-page">
       <section className="parties-overview">
+        <Image
+          src="/assets/decorations/deco-wakaba.png"
+          alt=""
+          width={116}
+          height={116}
+          className="parties-overview__decor parties-overview__decor--wakaba"
+          aria-hidden="true"
+        />
+        <Image
+          src="/assets/decorations/deco-paperplane.png"
+          alt=""
+          width={126}
+          height={100}
+          className="parties-overview__decor parties-overview__decor--paperplane"
+          aria-hidden="true"
+        />
         <div className="parties-overview__intro">
           <h1>政党一覧</h1>
           <p>2026年5月時点の衆議院・参議院の議席分布</p>
@@ -129,9 +145,20 @@ export default async function PartiesPage() {
       </section>
 
       <div className="party-guide-banner">
-        <Sparkles size={18} />
-        <span>政党ごとの理念や政策をもっと詳しく見てみましょう！</span>
-        <MascotImage pose="search" size={74} />
+        <span className="party-guide-banner__icon" aria-hidden="true">
+          <Sparkles size={18} />
+        </span>
+        <span className="party-guide-banner__text">
+          政党ごとの理念や政策をもっと詳しく見てみましょう！
+        </span>
+        <Image
+          src="/assets/mascot/mascot-search.png"
+          alt=""
+          width={118}
+          height={118}
+          className="party-guide-banner__mascot"
+          aria-hidden="true"
+        />
       </div>
 
       {parties.length === 0 && (
