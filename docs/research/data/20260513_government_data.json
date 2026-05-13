@@ -28,6 +28,7 @@
       "憲法改正",
       "防災・国土強靭化"
     ],
+    "policy_source_label": "自由民主党「公約・政策パンフレット」",
     "policy_source_type": "公式政策パンフレット",
     "policy_source_url": "https://www.jimin.jp/policy/pamphlet/",
     "policy_last_checked": "2026-05-13",
@@ -65,6 +66,7 @@
       "外交・安全保障",
       "憲法改正"
     ],
+    "policy_source_label": "日本維新の会「政策」",
     "policy_source_type": "公式政策ページ",
     "policy_source_url": "https://o-ishin.jp/policy/",
     "policy_last_checked": "2026-05-13",
@@ -103,6 +105,7 @@
       "安全保障",
       "政治改革"
     ],
+    "policy_source_label": "国民民主党「重点政策」",
     "policy_source_type": "公式政策ページ",
     "policy_source_url": "https://new-kokumin.jp/policies",
     "policy_last_checked": "2026-05-13",
@@ -142,6 +145,7 @@
       "政治改革",
       "選挙制度改革"
     ],
+    "policy_source_label": "中道改革連合「基本政策」",
     "policy_source_type": "公式基本政策ページ",
     "policy_source_url": "https://craj.jp/party/policies/",
     "policy_last_checked": "2026-05-13",
@@ -183,6 +187,7 @@
       "平和外交",
       "ジェンダー平等"
     ],
+    "policy_source_label": "立憲民主党「基本政策」",
     "policy_source_type": "公式基本政策ページ",
     "policy_source_url": "https://cdp-japan.jp/about/basic-policies",
     "policy_last_checked": "2026-05-13",
@@ -220,6 +225,7 @@
       "外国資本規制",
       "移民政策"
     ],
+    "policy_source_label": "参政党「重点政策」",
     "policy_source_type": "公式政策ページ",
     "policy_source_url": "https://sanseito.jp/political_measures/",
     "policy_last_checked": "2026-05-13",
@@ -262,6 +268,7 @@
       "選択的夫婦別姓",
       "外国人との共生"
     ],
+    "policy_source_label": "公明党「政策・提言」",
     "policy_source_type": "公式政策・提言ページ",
     "policy_source_url": "https://www.komei.or.jp/komeipolicy/",
     "policy_last_checked": "2026-05-13",
@@ -297,6 +304,7 @@
       "社会変化への対応",
       "行政DX"
     ],
+    "policy_source_label": "チームみらい「ミッション・理念」",
     "policy_source_type": "公式サイト・ミッション",
     "policy_source_url": "https://team-mir.ai/#mission",
     "policy_last_checked": "2026-05-13",
@@ -336,6 +344,7 @@
       "学費負担軽減",
       "ジェンダー平等"
     ],
+    "policy_source_label": "日本共産党「政策」",
     "policy_source_type": "公式政策ページ・総選挙政策アピール",
     "policy_source_url": "https://www.jcp.or.jp/web_policy/",
     "policy_last_checked": "2026-05-13",
@@ -377,6 +386,7 @@
       "辺野古新基地反対",
       "脱原発"
     ],
+    "policy_source_label": "れいわ新選組「綱領・当面の基本政策」",
     "policy_source_type": "公式綱領・当面の基本政策",
     "policy_source_url": "https://reiwa-shinsengumi.com/determination/",
     "policy_last_checked": "2026-05-13",
@@ -419,6 +429,7 @@
       "価値観外交",
       "教育制度見直し"
     ],
+    "policy_source_label": "日本保守党「重点政策」",
     "policy_source_type": "公式重点政策ページ",
     "policy_source_url": "https://hoshuto.jp/policy/",
     "policy_last_checked": "2026-05-13",
@@ -467,6 +478,7 @@
       "農林水産業",
       "教育"
     ],
+    "policy_source_label": "社会民主党「社民党宣言」",
     "policy_source_type": "公式宣言",
     "policy_source_url": "https://sdp.or.jp/declaration/",
     "policy_last_checked": "2026-05-13",
@@ -504,6 +516,7 @@
       "地方分権",
       "中央集権打破"
     ],
+    "policy_source_label": "減税日本「主要政策」",
     "policy_source_type": "公式主要政策ページ",
     "policy_source_url": "https://genzeinippon.com/seisaku/",
     "policy_last_checked": "2026-05-13",
@@ -527,6 +540,7 @@
     "policy_headline_type": null,
     "policy_pillars": [],
     "main_policy_tags": [],
+    "policy_source_label": null,
     "policy_source_type": null,
     "policy_source_url": null,
     "policy_last_checked": "2026-05-13",
