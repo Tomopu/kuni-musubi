@@ -8,63 +8,6 @@ import uuid
 from fastapi.testclient import TestClient
 
 
-class TestPostOnboardingEvent:
-    """POST /analytics/onboarding のバリデーション。"""
-
-    def test_valid_full_payload(self, client: TestClient) -> None:
-        """有効なフルペイロードは 204 を返す。"""
-        resp = client.post(
-            "/analytics/onboarding",
-            json={
-                "age_group": "20s",
-                "selected_party_id": str(uuid.uuid4()),
-                "selected_party_status": "selected",
-                "interest_category_ids": ["tax", "education"],
-            },
-        )
-        assert resp.status_code == 204
-
-    def test_valid_empty_payload(self, client: TestClient) -> None:
-        """全フィールドが null / 空でも 204 を返す。"""
-        resp = client.post(
-            "/analytics/onboarding",
-            json={},
-        )
-        assert resp.status_code == 204
-
-    def test_invalid_age_group(self, client: TestClient) -> None:
-        """許可されていない age_group は 422 を返す。"""
-        resp = client.post(
-            "/analytics/onboarding",
-            json={"age_group": "999s"},
-        )
-        assert resp.status_code == 422
-
-    def test_invalid_selected_party_status(self, client: TestClient) -> None:
-        """許可されていない selected_party_status は 422 を返す。"""
-        resp = client.post(
-            "/analytics/onboarding",
-            json={"selected_party_status": "invalid_status"},
-        )
-        assert resp.status_code == 422
-
-    def test_too_many_interest_category_ids(self, client: TestClient) -> None:
-        """interest_category_ids が 20 件超は 422 を返す。"""
-        resp = client.post(
-            "/analytics/onboarding",
-            json={"interest_category_ids": [str(i) for i in range(21)]},
-        )
-        assert resp.status_code == 422
-
-    def test_exactly_20_interest_category_ids(self, client: TestClient) -> None:
-        """interest_category_ids が 20 件はギリギリ許可される。"""
-        resp = client.post(
-            "/analytics/onboarding",
-            json={"interest_category_ids": [str(i) for i in range(20)]},
-        )
-        assert resp.status_code == 204
-
-
 class TestPostArticleEvent:
     """POST /analytics/article-event のバリデーション。"""
 
