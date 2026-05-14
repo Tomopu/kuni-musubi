@@ -89,9 +89,9 @@ export function SemiDonutChart({
   const MIN_LABEL_PCT = 5; // ラベルを表示する最小割合(%)
   const TOOLTIP_W = 136;
   const TOOLTIP_H = 44;
-  const titleY = flipped ? CY + 26 : CY - 58;
-  const totalY = flipped ? CY + 50 : CY - 34;
-  const seatsY = flipped ? CY + 64 : CY - 18;
+  const titleY = flipped ? CY + 26 : CY - 52;
+  const totalY = flipped ? CY + 50 : CY - 24;
+  const seatsY = flipped ? CY + 64 : CY - 8;
 
   // セグメントをビルドする（seats > 0 のみ）
   type Built = ChartSegment & {
@@ -193,14 +193,14 @@ export function SemiDonutChart({
         })}
 
         {/* 直径ベースライン */}
-        <line
+        {/* <line
           x1={CX - OUTER_R}
           y1={CY}
           x2={CX + OUTER_R}
           y2={CY}
           stroke="var(--color-border)"
           strokeWidth="1.5"
-        />
+        /> */}
 
         {/* 中央テキスト: 院名 + 合計議席 */}
         <text

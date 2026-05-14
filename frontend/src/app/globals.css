@@ -1391,7 +1391,7 @@ a {
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 12px;
-  margin-top: 18px;
+  margin: 18px 0 10px 0;
   border: 1px solid #efcf75;
   border-radius: 18px;
   background:
@@ -1491,8 +1491,19 @@ a {
 }
 
 .parties-overview__intro h1 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-size: 28px;
   font-weight: 500;
+}
+
+.parties-overview__title-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(47, 125, 74, 0.14));
 }
 
 .parties-overview__intro p,
@@ -2320,7 +2331,7 @@ a {
 
   .semi-chart-card {
     width: min(100%, 320px);
-    padding: 10px 8px;
+    padding: 0px;
   }
 
   .semi-chart-card--councillors {
@@ -2340,7 +2351,7 @@ a {
   }
 
   .semi-donut__svg {
-    max-height: 158px;
+    max-height: 250px;
     margin-inline: auto;
   }
 

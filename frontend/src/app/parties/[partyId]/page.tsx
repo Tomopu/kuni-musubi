@@ -354,7 +354,7 @@ export default async function PartyDetailPage({ params }: Props) {
           最終確認日：{formatDateJp(SEAT_COUNT_METADATA.lastChecked)}
         </p>
         <p className="seat-count-footnote__note">
-          ※{SEAT_COUNT_METADATA.note}
+          ※ {SEAT_COUNT_METADATA.note}
         </p>
       </div>
     </PageContainer>

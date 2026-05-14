@@ -98,8 +98,18 @@ export default async function PartiesPage() {
           aria-hidden="true"
         />
         <div className="parties-overview__intro">
-          <h1>政党一覧</h1>
-          <p>2026年5月時点の衆議院・参議院の議席分布</p>
+          <h1>
+            <Image
+              src="/assets/decorations/deco-wakaba.png"
+              alt=""
+              width={34}
+              height={34}
+              className="parties-overview__title-icon"
+              aria-hidden="true"
+            />
+            政党ごとの会派議席数
+          </h1>
+          <p>2026年5月時点の衆議院・参議院の会派議席数分布</p>
         </div>
 
         {(totalRepresentatives > 0 || totalCouncillors > 0) && (
@@ -113,12 +123,30 @@ export default async function PartiesPage() {
         )}
 
         <p className="parties-overview__note">
-          ※ 議席数は各党の公式発表や関連資料をもとに集計した参考値です。
+          ※ {SEAT_COUNT_METADATA.note}
         </p>
       </section>
 
       <section className="party-list-section">
-        <h2>政党を選んで、詳しい情報を見てみよう</h2>
+        <h2>政党一覧</h2>
+
+        <div className="party-guide-banner">
+          <span className="party-guide-banner__icon" aria-hidden="true">
+            <Sparkles size={18} />
+          </span>
+          <span className="party-guide-banner__text">
+            政党を選んで、詳しい情報を見てみよう！
+          </span>
+          <Image
+            src="/assets/mascot/mascot-search.png"
+            alt=""
+            width={118}
+            height={118}
+            className="party-guide-banner__mascot"
+            aria-hidden="true"
+          />
+        </div>
+
         <div className="party-list">
           {parties.map((party) => {
             const representatives = party.house_of_representatives_seats ?? 0;
@@ -168,23 +196,6 @@ export default async function PartiesPage() {
         </div>
       </section>
 
-      <div className="party-guide-banner">
-        <span className="party-guide-banner__icon" aria-hidden="true">
-          <Sparkles size={18} />
-        </span>
-        <span className="party-guide-banner__text">
-          政党ごとの理念や政策をもっと詳しく見てみましょう！
-        </span>
-        <Image
-          src="/assets/mascot/mascot-search.png"
-          alt=""
-          width={118}
-          height={118}
-          className="party-guide-banner__mascot"
-          aria-hidden="true"
-        />
-      </div>
-
       {parties.length === 0 && (
         <p className="empty-state">政党情報を読み込めませんでした</p>
       )}
@@ -208,7 +219,7 @@ export default async function PartiesPage() {
           最終確認日：{formatDateJp(SEAT_COUNT_METADATA.lastChecked)}
         </p>
         <p className="seat-count-footnote__note">
-          ※{SEAT_COUNT_METADATA.note}
+          ※ {SEAT_COUNT_METADATA.note}
         </p>
       </div>
     </PageContainer>
