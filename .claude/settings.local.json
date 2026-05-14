@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:cdp-japan.jp)",
+      "WebFetch(domain:rss.jimin.jp)",
+      "WebFetch(domain:www.jimin.jp)",
+      "WebFetch(domain:o-ishin.jp)",
+      "WebFetch(domain:new-kokumin.jp)",
+      "WebFetch(domain:www.jcp.or.jp)",
+      "WebFetch(domain:sdp.or.jp)",
+      "WebFetch(domain:team-mirai.jp)",
+      "WebFetch(domain:reiwa-shinsengumi.com)",
+      "WebFetch(domain:nihon-hoshuto.com)",
+      "WebFetch(domain:www.sanseito.jp)",
+      "Bash(PYTHONPATH=. python3 -c \"from app.infrastructure.db.models import Article; print\\('models OK'\\)\")",
+      "Skill(update-config)",
+      "Bash(SKIP_DB_INIT=1 python -m pytest tests/test_import_job.py -v)",
+      "Bash(SKIP_DB_INIT=1 uv run --no-sync pytest tests/test_import_job.py -v)",
+      "Bash(PYTHONPATH=..:../backend uv run pytest tests/test_url_list.py -v)",
+      "Bash(SKIP_DB_INIT=true uv run pytest tests/test_import_job.py -v)"
+    ]
+  }
+}
