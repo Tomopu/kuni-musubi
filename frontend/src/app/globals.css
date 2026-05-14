@@ -1751,14 +1751,23 @@ a {
   margin-right: 10px;
 }
 
-.party-row__tags span,
-.policy-tags span {
+.party-row__tags span {
   border-radius: 999px;
   background: color-mix(in srgb, var(--party-color, var(--color-brand-primary)) 12%, #ffffff);
   border: 1px solid color-mix(in srgb, var(--party-color, var(--color-brand-primary)) 14%, #ffffff);
   padding: 5px 9px;
   color: var(--color-text-secondary);
   font-size: 11px;
+  font-weight: 500;
+}
+
+.policy-tags span {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--party-color, var(--color-brand-primary)) 8%, #ffffff);
+  border: 1.5px solid color-mix(in srgb, var(--party-color, var(--color-brand-primary)) 38%, var(--color-border));
+  padding: 7px 16px;
+  color: var(--color-text-primary);
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -1776,122 +1785,237 @@ a {
   font-weight: 500;
 }
 
-.party-detail-hero {
+/* ヒーローカード */
+.party-hero-card {
+  position: relative;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: 1fr minmax(180px, 320px);
+  grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 20px;
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 90% 20%, color-mix(in srgb, var(--party-color) 18%, transparent), transparent 90px),
-    linear-gradient(135deg, #ffffff, color-mix(in srgb, var(--party-color) 9%, #fff8ef));
-  padding: 24px;
+  gap: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(16, 20, 47, 0.07);
 }
 
-.party-detail-hero__title {
+.party-hero-card::after {
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 300px;
+  height: 300px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--party-color) 10%, transparent);
+  pointer-events: none;
+  content: "";
+}
+
+.party-hero-card__left {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.party-hero-card__title {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
 }
 
-.party-detail-hero__badge {
+.party-hero-card__badge {
   display: inline-flex;
-  width: 72px;
-  height: 72px;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   background: var(--party-color);
   color: #ffffff;
-  font-size: 24px;
-  font-weight: 500;
+  font-size: 22px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--party-color) 35%, transparent);
 }
 
-.party-detail-hero h1 {
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 500;
+.party-hero-card__names h1 {
+  font-size: clamp(26px, 3.8vw, 44px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text-primary);
 }
 
-.party-detail-hero p {
+.party-hero-card__desc {
   color: var(--color-text-secondary);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 500;
+  line-height: 1.75;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
-.party-detail-hero__visual {
+.party-hero-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.party-hero-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border-radius: 999px;
+  background: var(--party-color);
+  padding: 0 22px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.party-hero-btn-primary:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.party-hero-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 1.5px solid var(--party-color);
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 0 22px;
+  color: var(--party-color);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.party-hero-btn-outline:hover {
+  opacity: 0.82;
+  transform: translateY(-1px);
+}
+
+.party-hero-card__right {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  color: color-mix(in srgb, var(--party-color) 62%, #789);
+  gap: 8px;
+  color: color-mix(in srgb, var(--party-color) 55%, #667);
 }
 
+.party-hero-card__landmark {
+  opacity: 0.65;
+}
+
+/* 基本情報カード */
 .party-metrics {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   margin-top: 14px;
 }
 
-.party-metrics div,
-.party-metrics a {
-  border: 1px solid color-mix(in srgb, var(--party-color) 24%, var(--color-border));
+.party-metric-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--color-border);
   border-radius: 16px;
-  background: color-mix(in srgb, var(--party-color) 7%, #ffffff);
+  background: #ffffff;
   padding: 14px 12px;
-  text-align: center;
+  box-shadow: 0 4px 12px rgba(16, 20, 47, 0.05);
 }
 
-.party-metrics span {
-  display: block;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.party-metrics strong {
+.party-metric-card__icon {
   display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  margin-top: 6px;
-  color: var(--color-text-primary);
-  font-size: 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--party-color) 10%, #f5f7f9);
+  color: var(--party-color);
+}
+
+.party-metric-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.party-metric-card__label {
+  color: var(--color-text-secondary);
+  font-size: 11px;
   font-weight: 500;
+  line-height: 1.4;
 }
 
-.party-metrics .party-official-link strong {
-  color: #2563eb;
+.party-metric-card__value {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--color-text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
 }
 
-.party-metrics .party-official-link svg {
-  color: #2563eb;
-}
-
-.party-official-link--inline {
-  display: inline-flex;
-  margin-top: 10px;
-  color: #2563eb;
-}
-
-.party-official-link--inline strong {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.party-metric-card__unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
 }
 
 .detail-card {
-  border: 1px solid color-mix(in srgb, var(--party-color) 24%, var(--color-border));
+  border: 1px solid var(--color-border);
   border-radius: 16px;
-  background: color-mix(in srgb, var(--party-color) 7%, #ffffff);
-  padding: 16px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(16, 20, 47, 0.04);
 }
 
 .detail-card h2,
 .related-news h2 {
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   font-size: 17px;
-  font-weight: 500;
+  font-weight: 700;
+}
+
+.detail-card--manifesto h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-card--manifesto h2::before {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--party-color);
+  flex: 0 0 auto;
 }
 
 .detail-card p {
@@ -2111,12 +2235,17 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .party-detail-hero {
+  .party-hero-card {
     grid-template-columns: 1fr;
   }
 
-  .party-detail-hero__visual {
-    justify-content: center;
+  .party-hero-card__right {
+    justify-content: flex-start;
+    order: -1;
+  }
+
+  .party-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .home-hero__content {
@@ -2521,24 +2650,39 @@ a {
 
   .party-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .party-metric-card {
+    gap: 10px;
+    padding: 12px 10px;
+  }
+
+  .party-metric-card__icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .party-metric-card__value {
+    font-size: 17px;
   }
 
   .party-detail-grid {
     grid-template-columns: 1fr;
   }
 
-  .party-detail-hero {
-    padding: 20px;
+  .party-hero-card {
+    padding: 22px 18px;
   }
 
-  .party-detail-hero__title {
-    align-items: flex-start;
+  .party-hero-card__badge {
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
   }
 
-  .party-detail-hero__badge {
-    width: 58px;
-    height: 58px;
-    font-size: 19px;
+  .party-hero-card__names h1 {
+    font-size: 26px;
   }
 
   .home-page,
@@ -2616,10 +2760,6 @@ a {
 
   .home-hero__content {
     padding: 22px 14px;
-  }
-
-  .party-metrics {
-    gap: 12px;
   }
 
   .detail-card {

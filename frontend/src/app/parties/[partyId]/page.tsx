@@ -4,10 +4,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  Check,
+  BarChart2,
+  Building,
+  Building2,
+  CalendarDays,
   ChevronRight,
   ExternalLink,
   Landmark,
+  UserRound,
 } from "lucide-react";
 import { MascotImage } from "@/components/ui/mascot-image";
 import { PageContainer } from "@/components/layout/page-container";
@@ -42,14 +46,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {
     return { title: "政党詳細 | Kuni-Musubi" };
   }
-}
-
-function splitIdeologySummary(summary: string): string[] {
-  const normalized = summary
-    .split(/\n|。|、(?=「)|(?<=」)/)
-    .map((item) => item.replace(/^[・\s]+/, "").trim())
-    .filter(Boolean);
-  return normalized.length > 0 ? normalized : [summary];
 }
 
 function normalizeTextList(value: unknown): string[] {
@@ -100,18 +96,14 @@ export default async function PartyDetailPage({ params }: Props) {
     : normalizeTextList(party.main_policy_categories);
   const latestArticles = party.latest_articles ?? [];
   const partyColor = party.color_hex ?? "var(--color-brand-primary)";
-  const policyHeadline = party.policy_headline ?? party.ideology_summary;
-  const headlineItems = policyHeadline
-    ? splitIdeologySummary(policyHeadline)
-    : [];
 
   // 2. 議席数の表示値を算出する（どちらかが null の場合は "—"）
   const hor = party.house_of_representatives_seats;
   const hoc = party.house_of_councillors_seats;
   const totalSeatsDisplay =
-    hor === null || hoc === null ? "—" : `${hor + hoc}議席`;
-  const horDisplay = hor === null ? "—" : `${hor}議席`;
-  const hocDisplay = hoc === null ? "—" : `${hoc}議席`;
+    hor === null || hoc === null ? "—" : `${hor + hoc}`;
+  const horDisplay = hor === null ? "—" : `${hor}`;
+  const hocDisplay = hoc === null ? "—" : `${hoc}`;
 
   // 3. 政策出典リンクテキストを決定する
   const policySourceLinkText =
@@ -128,75 +120,111 @@ export default async function PartyDetailPage({ params }: Props) {
         政党一覧へ
       </Link>
 
-      {/* 2. ヒーローエリア */}
-      <section className="party-detail-hero">
-        <div className="party-detail-hero__title">
-          <span className="party-detail-hero__badge">{party.short_name}</span>
-          <div>
-            <h1>{party.name}</h1>
-            <p>{party.short_name}</p>
+      {/* 2. ヒーローカード */}
+      <section className="party-hero-card">
+        <div className="party-hero-card__left">
+          <div className="party-hero-card__title">
+            <span className="party-hero-card__badge">{party.short_name}</span>
+            <div className="party-hero-card__names">
+              <h1>{party.name}</h1>
+            </div>
+          </div>
+          {party.ideology_summary && (
+            <p className="party-hero-card__desc">{party.ideology_summary}</p>
+          )}
+          <div className="party-hero-card__actions">
+            {party.official_url && (
+              <a
+                href={party.official_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="party-hero-btn-primary"
+              >
+                公式サイトへ
+                <ExternalLink size={14} />
+              </a>
+            )}
           </div>
         </div>
-        <div className="party-detail-hero__visual">
-          <Landmark size={96} strokeWidth={1.4} />
-          <MascotImage pose="important" size={76} />
+        <div className="party-hero-card__right">
+          <Landmark
+            size={88}
+            strokeWidth={1.2}
+            className="party-hero-card__landmark"
+          />
+          <MascotImage pose="important" size={80} />
         </div>
       </section>
 
       {/* 3. 基本情報カード */}
       <section className="party-metrics">
-        <div>
-          <span>代表者（党首）</span>
-          <strong>{party.leader_name ?? "未確認"}</strong>
-        </div>
-        <div>
-          <span>党成立年</span>
-          <strong>{party.founded_year ? `${party.founded_year}年` : "未確認"}</strong>
-        </div>
-        <div>
-          <span>衆参会派議席数</span>
-          <strong>{totalSeatsDisplay}</strong>
-        </div>
-        <div>
-          <span>衆議院会派議席数</span>
-          <strong>{horDisplay}</strong>
-        </div>
-        <div>
-          <span>参議院会派議席数</span>
-          <strong>{hocDisplay}</strong>
-        </div>
-        {party.official_url && (
-          <a
-            href={party.official_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="party-official-link"
-          >
-            <span>公式サイト</span>
-            <strong>
-              公式サイトへ
-              <ExternalLink size={16} />
+        <div className="party-metric-card">
+          <div className="party-metric-card__icon">
+            <UserRound size={20} />
+          </div>
+          <div className="party-metric-card__body">
+            <span className="party-metric-card__label">代表（党首）</span>
+            <strong className="party-metric-card__value">
+              {party.leader_name ?? "未確認"}
             </strong>
-          </a>
-        )}
+          </div>
+        </div>
+        <div className="party-metric-card">
+          <div className="party-metric-card__icon">
+            <CalendarDays size={20} />
+          </div>
+          <div className="party-metric-card__body">
+            <span className="party-metric-card__label">党成立年</span>
+            <strong className="party-metric-card__value">
+              {party.founded_year ? `${party.founded_year}年` : "未確認"}
+            </strong>
+          </div>
+        </div>
+        <div className="party-metric-card">
+          <div className="party-metric-card__icon">
+            <BarChart2 size={20} />
+          </div>
+          <div className="party-metric-card__body">
+            <span className="party-metric-card__label">衆参会派議席数</span>
+            <strong className="party-metric-card__value">
+              {totalSeatsDisplay}
+              {totalSeatsDisplay !== "—" && (
+                <span className="party-metric-card__unit">議席</span>
+              )}
+            </strong>
+          </div>
+        </div>
+        <div className="party-metric-card">
+          <div className="party-metric-card__icon">
+            <Building2 size={20} />
+          </div>
+          <div className="party-metric-card__body">
+            <span className="party-metric-card__label">衆議院会派議席数</span>
+            <strong className="party-metric-card__value">
+              {horDisplay}
+              {horDisplay !== "—" && (
+                <span className="party-metric-card__unit">議席</span>
+              )}
+            </strong>
+          </div>
+        </div>
+        <div className="party-metric-card">
+          <div className="party-metric-card__icon">
+            <Building size={20} />
+          </div>
+          <div className="party-metric-card__body">
+            <span className="party-metric-card__label">参議院会派議席数</span>
+            <strong className="party-metric-card__value">
+              {hocDisplay}
+              {hocDisplay !== "—" && (
+                <span className="party-metric-card__unit">議席</span>
+              )}
+            </strong>
+          </div>
+        </div>
       </section>
 
-      {/* 4. 掲げるスローガン */}
-      {policyHeadline && (
-        <section className="detail-card">
-          <h2>掲げるスローガン</h2>
-          <ul className="ideology-list">
-            {headlineItems.map((item) => (
-              <li key={item}>
-                <Check size={17} />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* 5. 政策の柱 */}
+      {/* 4. 政策の柱 */}
       {(policyPillars.length > 0 || party.manifesto_summary) && (
         <section className="detail-card detail-card--manifesto">
           <h2>政策の柱</h2>
@@ -233,7 +261,7 @@ export default async function PartyDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* 6. 主な政策テーマ */}
+      {/* 5. 主な政策テーマ */}
       {mainPolicyTags.length > 0 && (
         <section className="detail-card">
           <h2>主な政策テーマ</h2>
@@ -245,7 +273,7 @@ export default async function PartyDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* 7. 関連ニュース */}
+      {/* 6. 関連ニュース */}
       {latestArticles.length > 0 && (
         <section className="related-news">
           <div className="related-news__head">
@@ -263,7 +291,7 @@ export default async function PartyDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* 8. 議席数の出典・注記 */}
+      {/* 7. 議席数の出典・注記 */}
       <div className="seat-count-footnote">
         <div className="seat-count-footnote__sources">
           <p>出典：</p>
