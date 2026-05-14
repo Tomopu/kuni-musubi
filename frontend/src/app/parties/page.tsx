@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, ExternalLink, Sparkles } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { SeatOverview } from "@/features/parties/components/seat-overview";
 import type { ChartSegment } from "@/features/parties/components/semi-donut-chart";
@@ -29,6 +29,22 @@ const FALLBACK_POLICY_CATEGORIES_BY_NAME: Record<string, string[]> = {
   無所属: ["地域政策", "個別政策", "議会活動"],
 };
 
+// 議席数の出典・注記メタデータ
+const SEAT_COUNT_METADATA = {
+  note: "議席数は、衆議院・参議院が公表する会派別所属議員数をもとにしています。政党所属議員数や選挙時の獲得議席数とは一致しない場合があります。",
+  sources: [
+    {
+      name: "衆議院ホームページ「会派名及び会派別所属議員数」",
+      url: "https://www.shugiin.go.jp/",
+    },
+    {
+      name: "参議院ホームページ「会派別所属議員数一覧」",
+      url: "https://www.sangiin.go.jp/",
+    },
+  ],
+  lastChecked: "2026-05-13",
+};
+
 function toSegments(
   parties: PartyResponse[],
   seatKey: "house_of_representatives_seats" | "house_of_councillors_seats",
@@ -41,6 +57,12 @@ function toSegments(
       seats: party[seatKey] ?? 0,
     }))
     .filter((party) => party.seats > 0);
+}
+
+// "YYYY-MM-DD" を "YYYY年M月D日" 形式に変換する
+function formatDateJp(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return `${year}年${month}月${day}日`;
 }
 
 export default async function PartiesPage() {
@@ -166,6 +188,29 @@ export default async function PartiesPage() {
       {parties.length === 0 && (
         <p className="empty-state">政党情報を読み込めませんでした</p>
       )}
+
+      <div className="seat-count-footnote">
+        <div className="seat-count-footnote__sources">
+          <p>出典：</p>
+          {SEAT_COUNT_METADATA.sources.map((source) => (
+            <a
+              key={source.url}
+              href={source.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {source.name}
+              <ExternalLink size={12} />
+            </a>
+          ))}
+        </div>
+        <p className="seat-count-footnote__date">
+          最終確認日：{formatDateJp(SEAT_COUNT_METADATA.lastChecked)}
+        </p>
+        <p className="seat-count-footnote__note">
+          ※{SEAT_COUNT_METADATA.note}
+        </p>
+      </div>
     </PageContainer>
   );
 }
