@@ -1788,26 +1788,47 @@ a {
 /* ヒーローカード */
 .party-hero-card {
   position: relative;
+  z-index: 0;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 160px;
   align-items: center;
-  gap: 24px;
-  border: 1px solid var(--color-border);
-  border-radius: 20px;
-  background: #ffffff;
-  padding: 32px;
-  box-shadow: 0 8px 24px rgba(16, 20, 47, 0.07);
+  gap: 0;
+  border-radius: 22px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--party-color) 86%, #ffffff) 0%,
+    color-mix(in srgb, var(--party-color) 60%, #0c0820) 100%
+  );
+  padding: 36px 0 36px 36px;
+  min-height: 210px;
+  box-shadow:
+    0 20px 48px color-mix(in srgb, var(--party-color) 28%, transparent),
+    0 2px 8px rgba(0, 0, 0, 0.14);
 }
 
+/* 左上の装飾円 */
+.party-hero-card::before {
+  position: absolute;
+  top: -72px;
+  left: -48px;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  content: "";
+}
+
+/* 右下の装飾円 */
 .party-hero-card::after {
   position: absolute;
-  top: -80px;
-  right: -80px;
-  width: 300px;
-  height: 300px;
+  bottom: -88px;
+  right: 100px;
+  width: 280px;
+  height: 280px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--party-color) 10%, transparent);
+  background: rgba(255, 255, 255, 0.06);
   pointer-events: none;
   content: "";
 }
@@ -1829,28 +1850,28 @@ a {
 
 .party-hero-card__badge {
   display: inline-flex;
-  width: 68px;
-  height: 68px;
+  width: 64px;
+  height: 64px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--party-color);
+  background: rgba(255, 255, 255, 0.18);
+  border: 2px solid rgba(255, 255, 255, 0.34);
   color: #ffffff;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--party-color) 35%, transparent);
 }
 
 .party-hero-card__names h1 {
-  font-size: clamp(26px, 3.8vw, 44px);
+  font-size: clamp(24px, 3.4vw, 42px);
   font-weight: 700;
   line-height: 1.2;
-  color: var(--color-text-primary);
+  color: #ffffff;
 }
 
 .party-hero-card__desc {
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.80);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.75;
@@ -1871,63 +1892,44 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
-  border-radius: 999px;
-  background: var(--party-color);
-  padding: 0 22px;
-  color: #ffffff;
+  min-height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0 20px;
+  color: var(--party-color);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
   transition:
-    opacity 0.15s ease,
+    background-color 0.15s ease,
     transform 0.15s ease;
 }
 
 .party-hero-btn-primary:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
-}
-
-.party-hero-btn-outline {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  border: 1.5px solid var(--party-color);
-  border-radius: 999px;
   background: #ffffff;
-  padding: 0 22px;
-  color: var(--party-color);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
-}
-
-.party-hero-btn-outline:hover {
-  opacity: 0.82;
   transform: translateY(-1px);
 }
 
 .party-hero-card__right {
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  color: color-mix(in srgb, var(--party-color) 55%, #667);
+  align-self: stretch;
 }
 
-.party-hero-card__landmark {
-  opacity: 0.65;
+.party-hero-card__mascot {
+  position: absolute;
+  bottom: -8px;
+  right: 50px;
+  width: 152px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.2));
 }
 
 /* 基本情報カード */
 .party-metrics {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
@@ -1936,12 +1938,12 @@ a {
 
 .party-metric-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   border: 1px solid var(--color-border);
   border-radius: 16px;
   background: #ffffff;
-  padding: 14px 12px;
+  padding: 18px 14px;
   box-shadow: 0 4px 12px rgba(16, 20, 47, 0.05);
 }
 
@@ -1955,6 +1957,7 @@ a {
   border-radius: 999px;
   background: color-mix(in srgb, var(--party-color) 10%, #f5f7f9);
   color: var(--party-color);
+  margin-top: 2px;
 }
 
 .party-metric-card__body {
@@ -1987,32 +1990,37 @@ a {
   color: var(--color-text-secondary);
 }
 
+.party-metric-card__note {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
 .detail-card {
   border: 1px solid var(--color-border);
   border-radius: 16px;
   background: #ffffff;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(16, 20, 47, 0.04);
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(16, 20, 47, 0.04);
 }
 
 .detail-card h2,
 .related-news h2 {
-  margin-bottom: 14px;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.detail-card--manifesto h2 {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
 }
 
-.detail-card--manifesto h2::before {
+.detail-card h2::before {
   content: "";
   display: block;
-  width: 4px;
-  height: 22px;
+  width: 3px;
+  height: 20px;
   border-radius: 999px;
   background: var(--party-color);
   flex: 0 0 auto;
@@ -2027,6 +2035,7 @@ a {
 
 .detail-card--manifesto {
   margin-top: 12px;
+  margin-bottom: 16px;
 }
 
 .manifesto-list {
@@ -2040,7 +2049,7 @@ a {
 
 .manifesto-list li {
   display: grid;
-  grid-template-columns: 23px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   gap: 10px;
   min-width: 0;
   color: var(--color-text-primary);
@@ -2062,16 +2071,20 @@ a {
 
 .manifesto-list li::before {
   display: inline-flex;
-  width: 23px;
-  height: 23px;
+  width: 40px;
+  height: 26px;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--party-color);
   color: #ffffff;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 700;
   content: counter(manifesto);
+  margin-top: 1px;
+  /* 右向き吹き出し: border-radius で左側を丸く、clip-path で右側に三角の尾 */
+  padding-right: 10px;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
 }
 
 .ideology-list {
@@ -2124,15 +2137,19 @@ a {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: 5px;
   margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid color-mix(in srgb, var(--party-color, var(--color-brand-primary)) 18%, var(--color-border));
 }
 
-.policy-source-footer a,
-.policy-source-footer span,
-.policy-source-footer p {
+.policy-source-footer__row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
+.policy-source-footer__item {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -2141,14 +2158,21 @@ a {
   font-weight: 400;
 }
 
-.policy-source-footer a {
+.policy-source-footer__item--link {
   color: #2563eb;
+  text-decoration: underline;
 }
 
-.policy-source-footer p {
-  font-size: 11px;
+.policy-source-footer__divider {
+  color: var(--color-border);
+  font-size: 12px;
+  user-select: none;
+}
+
+.policy-source-footer .policy-source-footer__note {
   color: var(--color-text-secondary);
-  text-align: right;
+  font-size: 11px;
+  font-weight: 400;
   line-height: 1.6;
 }
 
@@ -2198,8 +2222,14 @@ a {
     align-items: flex-start;
   }
 
-  .policy-source-footer p {
-    text-align: left;
+  .policy-source-footer__row {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+  }
+
+  .policy-source-footer__divider {
+    display: none;
   }
 }
 
@@ -2236,12 +2266,13 @@ a {
   }
 
   .party-hero-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 120px;
+    min-height: 180px;
+    padding-left: 24px;
   }
 
-  .party-hero-card__right {
-    justify-content: flex-start;
-    order: -1;
+  .party-hero-card__mascot {
+    width: 116px;
   }
 
   .party-metrics {
@@ -2655,7 +2686,7 @@ a {
 
   .party-metric-card {
     gap: 10px;
-    padding: 12px 10px;
+    padding: 14px 12px;
   }
 
   .party-metric-card__icon {

@@ -4,16 +4,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  BarChart2,
-  Building,
-  Building2,
   CalendarDays,
   ChevronRight,
   ExternalLink,
+  FileText,
   Landmark,
   UserRound,
+  Users,
 } from "lucide-react";
-import { MascotImage } from "@/components/ui/mascot-image";
+import Image from "next/image";
 import { PageContainer } from "@/components/layout/page-container";
 import { ArticleCard } from "@/features/articles/components/article-card";
 import { getPartyDetail } from "@/lib/api/parties-api";
@@ -81,6 +80,29 @@ function formatDateJp(dateStr: string): string {
   return `${year}年${month}月${day}日`;
 }
 
+// 西暦を和暦に変換する（党成立年表示用）
+function formatJapaneseEra(year: number): string {
+  let era: string;
+  let eraYear: number;
+  if (year >= 2019) {
+    era = "令和";
+    eraYear = year - 2018;
+  } else if (year >= 1989) {
+    era = "平成";
+    eraYear = year - 1988;
+  } else if (year >= 1926) {
+    era = "昭和";
+    eraYear = year - 1925;
+  } else if (year >= 1912) {
+    era = "大正";
+    eraYear = year - 1911;
+  } else {
+    era = "明治";
+    eraYear = year - 1867;
+  }
+  return `${era}${eraYear}年`;
+}
+
 export default async function PartyDetailPage({ params }: Props) {
   const { partyId } = await params;
   const party = await getPartyDetail(partyId).catch(() => notFound());
@@ -116,7 +138,7 @@ export default async function PartyDetailPage({ params }: Props) {
     >
       {/* 1. 戻るリンク */}
       <Link href="/parties" className="back-link">
-        <ArrowLeft size={20} />
+        <ArrowLeft size={16} />
         政党一覧へ
       </Link>
 
@@ -132,8 +154,8 @@ export default async function PartyDetailPage({ params }: Props) {
           {party.ideology_summary && (
             <p className="party-hero-card__desc">{party.ideology_summary}</p>
           )}
-          <div className="party-hero-card__actions">
-            {party.official_url && (
+          {party.official_url && (
+            <div className="party-hero-card__actions">
               <a
                 href={party.official_url}
                 target="_blank"
@@ -141,18 +163,19 @@ export default async function PartyDetailPage({ params }: Props) {
                 className="party-hero-btn-primary"
               >
                 公式サイトへ
-                <ExternalLink size={14} />
+                <ExternalLink size={13} />
               </a>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         <div className="party-hero-card__right">
-          <Landmark
-            size={88}
-            strokeWidth={1.2}
-            className="party-hero-card__landmark"
+          <Image
+            src="/assets/mascot/mascot-leaning.png"
+            alt=""
+            width={150}
+            height={200}
+            className="party-hero-card__mascot"
           />
-          <MascotImage pose="important" size={80} />
         </div>
       </section>
 
@@ -178,25 +201,31 @@ export default async function PartyDetailPage({ params }: Props) {
             <strong className="party-metric-card__value">
               {party.founded_year ? `${party.founded_year}年` : "未確認"}
             </strong>
+            {party.founded_year && (
+              <span className="party-metric-card__note">
+                {formatJapaneseEra(party.founded_year)}
+              </span>
+            )}
           </div>
         </div>
         <div className="party-metric-card">
           <div className="party-metric-card__icon">
-            <BarChart2 size={20} />
+            <Users size={20} />
           </div>
           <div className="party-metric-card__body">
-            <span className="party-metric-card__label">衆参会派議席数</span>
+            <span className="party-metric-card__label">衆参合計議席数</span>
             <strong className="party-metric-card__value">
               {totalSeatsDisplay}
               {totalSeatsDisplay !== "—" && (
                 <span className="party-metric-card__unit">議席</span>
               )}
             </strong>
+            <span className="party-metric-card__note">※ 2026年5月時点</span>
           </div>
         </div>
         <div className="party-metric-card">
           <div className="party-metric-card__icon">
-            <Building2 size={20} />
+            <Landmark size={20} />
           </div>
           <div className="party-metric-card__body">
             <span className="party-metric-card__label">衆議院会派議席数</span>
@@ -206,11 +235,12 @@ export default async function PartyDetailPage({ params }: Props) {
                 <span className="party-metric-card__unit">議席</span>
               )}
             </strong>
+            <span className="party-metric-card__note">※ 2026年5月時点</span>
           </div>
         </div>
         <div className="party-metric-card">
           <div className="party-metric-card__icon">
-            <Building size={20} />
+            <Landmark size={20} />
           </div>
           <div className="party-metric-card__body">
             <span className="party-metric-card__label">参議院会派議席数</span>
@@ -220,6 +250,7 @@ export default async function PartyDetailPage({ params }: Props) {
                 <span className="party-metric-card__unit">議席</span>
               )}
             </strong>
+            <span className="party-metric-card__note">※ 2026年5月時点</span>
           </div>
         </div>
       </section>
@@ -240,22 +271,34 @@ export default async function PartyDetailPage({ params }: Props) {
             <p>{party.manifesto_summary}</p>
           )}
           {/* 政策情報の出典 */}
-          {(party.policy_source_url || party.policy_last_checked || party.policy_note) && (
+          {(party.policy_source_url || party.policy_last_checked) && (
             <div className="policy-source-footer">
-              {party.policy_source_url && (
-                <a
-                  href={party.policy_source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  出典：{policySourceLinkText}
-                  <ExternalLink size={14} />
-                </a>
-              )}
-              {party.policy_last_checked && (
-                <span>最終確認日：{formatDateJp(party.policy_last_checked)}</span>
-              )}
-              {party.policy_note && <p>{party.policy_note}</p>}
+              <div className="policy-source-footer__row">
+                {party.policy_source_url && (
+                  <a
+                    href={party.policy_source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="policy-source-footer__item policy-source-footer__item--link"
+                  >
+                    <FileText size={12} />
+                    出典：{policySourceLinkText}
+                    <ExternalLink size={11} />
+                  </a>
+                )}
+                {party.policy_source_url && party.policy_last_checked && (
+                  <span className="policy-source-footer__divider" aria-hidden="true">|</span>
+                )}
+                {party.policy_last_checked && (
+                  <span className="policy-source-footer__item">
+                    <CalendarDays size={12} />
+                    最終確認日：{formatDateJp(party.policy_last_checked)}
+                  </span>
+                )}
+              </div>
+              <p className="policy-source-footer__note">
+                ※ 政策内容は変更されている可能性があります。
+              </p>
             </div>
           )}
         </section>
