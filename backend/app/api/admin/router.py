@@ -27,6 +27,7 @@ from app.api.admin.import_service import (
     create_and_start_job,
     get_active_job,
     has_gemini_key,
+    list_import_party_names,
 )
 from app.infrastructure.db.models import (
     AdminUser,
@@ -1233,6 +1234,7 @@ def imports_index(request: Request, db: Session = Depends(get_db)):
             "admin": admin,
             "active_job": active_job,
             "has_gemini": has_gemini_key(),
+            "import_party_names": list_import_party_names(),
         },
     )
 
@@ -1242,6 +1244,7 @@ def imports_run(
     request: Request,
     db: Session = Depends(get_db),
     job_type: str = Form(...),
+    party_name: str = Form(""),
     single_url: str = Form(""),
     url_list_text: str = Form(""),
     url_source_name: str = Form("manual"),
@@ -1277,6 +1280,7 @@ def imports_run(
     # 5. ジョブを作成して開始する
     params = JobParams(
         job_type=job_type,
+        party_name=party_name.strip() or None,
         single_url=single_url.strip() or None,
         url_sources=url_sources,
         dry_run=(job_type == "dry_run") or (dry_run == "on"),
