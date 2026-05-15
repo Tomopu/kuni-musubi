@@ -1,5 +1,5 @@
 # 日本の政党シードデータ
-# docs/research/data/20260513_government_data.json を正として読み込む。
+# docs/research/data/parties_export.json を正として読み込む。
 
 import json
 import uuid
@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 
-RESEARCH_DATA_FILENAME = "20260513_government_data.json"
+RESEARCH_DATA_FILENAME = "parties_export.json"
 
 
 def _resolve_research_data_path() -> Path:
@@ -102,11 +102,19 @@ def load_party_seeds() -> list[dict[str, Any]]:
                 "policy_last_checked": _date_or_none(item.get("policy_last_checked")),
                 "policy_note": _string_or_none(item.get("policy_note")),
                 "official_url": _string_or_none(item.get("official_url")),
-                # 旧 API / 画面との互換用。新データから導出して空にしない。
-                "ideology_summary": _string_or_none(item.get("policy_headline")),
-                "manifesto_summary": "\n".join(policy_pillars) or None,
-                "manifesto_promises": policy_pillars,
-                "main_policy_categories": main_policy_tags,
+                # 旧 API / 画面との互換用。export に値があれば尊重し、なければ新データから導出する。
+                "ideology_summary": _string_or_none(
+                    item.get("ideology_summary")
+                ) or _string_or_none(item.get("policy_headline")),
+                "manifesto_summary": _string_or_none(
+                    item.get("manifesto_summary")
+                ) or ("\n".join(policy_pillars) or None),
+                "manifesto_promises": _string_list(
+                    item.get("manifesto_promises")
+                ) or policy_pillars,
+                "main_policy_categories": _string_list(
+                    item.get("main_policy_categories")
+                ) or main_policy_tags,
             }
         )
     return seeds
