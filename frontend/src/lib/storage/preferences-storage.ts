@@ -1,4 +1,5 @@
 import { PREFERENCES_STORAGE_KEY } from "@/lib/constants";
+import { LEGACY_PARTY_ID_MAP } from "@/lib/constants/parties";
 
 // ユーザー設定の型定義
 export type UserPreferences = {
@@ -18,6 +19,11 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   onboardingCompleted: false,
 };
 
+function normalizeSupportedPartyId(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  return LEGACY_PARTY_ID_MAP[value] ?? value;
+}
+
 // 1. localStorage からユーザー設定を取得する
 export function getPreferences(): UserPreferences {
   if (typeof window === "undefined") {
@@ -29,7 +35,7 @@ export function getPreferences(): UserPreferences {
     const parsed = JSON.parse(raw) as Partial<UserPreferences>;
     return {
       ageGroup: parsed.ageGroup ?? null,
-      supportedPartyId: parsed.supportedPartyId ?? null,
+      supportedPartyId: normalizeSupportedPartyId(parsed.supportedPartyId),
       interestedCategoryIds: Array.isArray(parsed.interestedCategoryIds)
         ? parsed.interestedCategoryIds
         : [],

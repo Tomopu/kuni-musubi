@@ -6,23 +6,40 @@ export type PartyOption = {
   shortName: string;
 };
 
+export const LEGACY_PARTY_ID_MAP: Record<string, string> = {
+  ldp: "11111111-0000-0000-0000-000000000001",
+  cdp: "11111111-0000-0000-0000-000000000002",
+  ishin: "11111111-0000-0000-0000-000000000003",
+  dpfp: "11111111-0000-0000-0000-000000000004",
+  sansei: "11111111-0000-0000-0000-000000000005",
+  jcp: "11111111-0000-0000-0000-000000000006",
+  reiwa: "11111111-0000-0000-0000-000000000007",
+  sdp: "11111111-0000-0000-0000-000000000008",
+  mirai: "11111111-0000-0000-0000-000000000009",
+  komeito: "11111111-0000-0000-0000-000000000010",
+  chudo: "11111111-0000-0000-0000-000000000011",
+  conservative: "11111111-0000-0000-0000-000000000012",
+  reduce_tax: "11111111-0000-0000-0000-000000000013",
+  independent: "11111111-0000-0000-0000-000000000014",
+};
+
 export const PARTY_OPTIONS: PartyOption[] = [
   { id: "none", name: "特になし", shortName: "なし" },
   { id: "unknown", name: "わからない", shortName: "?" },
-  { id: "ldp", name: "自由民主党", shortName: "自民" },
-  { id: "cdp", name: "立憲民主党", shortName: "立憲" },
-  { id: "ishin", name: "日本維新の会", shortName: "維新" },
-  { id: "dpfp", name: "国民民主党", shortName: "国民" },
-  { id: "komeito", name: "公明党", shortName: "公明" },
-  { id: "jcp", name: "日本共産党", shortName: "共産" },
-  { id: "reiwa", name: "れいわ新選組", shortName: "れいわ" },
-  { id: "sansei", name: "参政党", shortName: "参政" },
-  { id: "sdp", name: "社会民主党", shortName: "社民" },
-  { id: "conservative", name: "日本保守党", shortName: "保守" },
-  { id: "mirai", name: "チームみらい", shortName: "チみ" },
-  { id: "chudo", name: "中道改革連合", shortName: "中道" },
-  { id: "reduce_tax", name: "減税日本・ゆうこく連合", shortName: "減税" },
-  { id: "independent", name: "無所属", shortName: "無所属" },
+  { id: LEGACY_PARTY_ID_MAP.ldp, name: "自由民主党", shortName: "自民" },
+  { id: LEGACY_PARTY_ID_MAP.cdp, name: "立憲民主党", shortName: "立憲" },
+  { id: LEGACY_PARTY_ID_MAP.ishin, name: "日本維新の会", shortName: "維新" },
+  { id: LEGACY_PARTY_ID_MAP.dpfp, name: "国民民主党", shortName: "国民" },
+  { id: LEGACY_PARTY_ID_MAP.komeito, name: "公明党", shortName: "公明" },
+  { id: LEGACY_PARTY_ID_MAP.jcp, name: "日本共産党", shortName: "共産" },
+  { id: LEGACY_PARTY_ID_MAP.reiwa, name: "れいわ新選組", shortName: "れいわ" },
+  { id: LEGACY_PARTY_ID_MAP.sansei, name: "参政党", shortName: "参政" },
+  { id: LEGACY_PARTY_ID_MAP.sdp, name: "社会民主党", shortName: "社民" },
+  { id: LEGACY_PARTY_ID_MAP.conservative, name: "日本保守党", shortName: "保守" },
+  { id: LEGACY_PARTY_ID_MAP.mirai, name: "チームみらい", shortName: "チみ" },
+  { id: LEGACY_PARTY_ID_MAP.chudo, name: "中道改革連合", shortName: "中道" },
+  { id: LEGACY_PARTY_ID_MAP.reduce_tax, name: "減税日本・ゆうこく連合", shortName: "減ゆ" },
+  { id: LEGACY_PARTY_ID_MAP.independent, name: "無所属", shortName: "無所属" },
 ];
 
 // 年代の選択肢
