@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -21,34 +21,52 @@ import { getPreferences, needsOnboarding } from "@/lib/storage/preferences-stora
 import { ArticleCard } from "@/features/articles/components/article-card";
 
 type HomeViewProps = {
+  initialArticles?: ArticleCardResponse[];
+  initialCategories?: PolicyCategoryResponse[];
   initialCategoryId?: string;
+  initialNextCursor?: string | null;
+  initialParties?: PartyResponse[];
   initialPartyId?: string;
 };
 
-export function HomeView({ initialCategoryId, initialPartyId }: HomeViewProps) {
+export function HomeView({
+  initialArticles = [],
+  initialCategories = [],
+  initialCategoryId,
+  initialNextCursor = null,
+  initialParties = [],
+  initialPartyId,
+}: HomeViewProps) {
   const router = useRouter();
-  const [articles, setArticles] = useState<ArticleCardResponse[]>([]);
-  const [categories, setCategories] = useState<PolicyCategoryResponse[]>([]);
-  const [parties, setParties] = useState<PartyResponse[]>([]);
+  const shouldUseInitialArticles = useRef(true);
+  const [articles, setArticles] = useState<ArticleCardResponse[]>(initialArticles);
+  const [categories, setCategories] = useState<PolicyCategoryResponse[]>(initialCategories);
+  const [parties, setParties] = useState<PartyResponse[]>(initialParties);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     initialCategoryId ?? null,
   );
   const [selectedPartyId, setSelectedPartyId] = useState<string | null | undefined>(undefined);
   const [heroPartyName, setHeroPartyName] = useState<string | null>(null);
   const [heroPartyId, setHeroPartyId] = useState<string | null>(null);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
+  const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   useEffect(() => {
-    listParties()
-      .then(setParties)
-      .catch(() => setParties([]));
-    listCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]));
-  }, []);
+    if (initialParties.length > 0 && initialCategories.length > 0) return;
+
+    if (initialParties.length === 0) {
+      listParties()
+        .then(setParties)
+        .catch(() => setParties([]));
+    }
+    if (initialCategories.length === 0) {
+      listCategories()
+        .then(setCategories)
+        .catch(() => setCategories([]));
+    }
+  }, [initialCategories.length, initialParties.length]);
 
   useEffect(() => {
     if (needsOnboarding()) {
@@ -96,6 +114,12 @@ export function HomeView({ initialCategoryId, initialPartyId }: HomeViewProps) {
 
   useEffect(() => {
     if (selectedPartyId === undefined) return;
+    if (shouldUseInitialArticles.current) {
+      shouldUseInitialArticles.current = false;
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     fetchArticles(selectedPartyId, selectedCategoryId).then((res) => {
       setArticles(res.items);
