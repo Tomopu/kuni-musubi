@@ -296,6 +296,11 @@ export default async function PartyDetailPage({ params }: Props) {
                   </span>
                 )}
               </div>
+              {party.policy_note && (
+                <p className="policy-source-footer__note">
+                  ※ {party.policy_note}
+                </p>
+              )}
               <p className="policy-source-footer__note">
                 ※ 政策内容は変更されている可能性があります。
               </p>
