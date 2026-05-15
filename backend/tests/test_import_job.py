@@ -50,6 +50,18 @@ class TestHasGeminiKey:
                     os.environ["GEMINI_API_KEY"] = original
 
 
+class TestListImportPartyNames:
+    """取り込み対象政党名一覧のテスト。"""
+
+    def test_returns_unique_party_names_from_config(self) -> None:
+        from app.api.admin.import_service import list_import_party_names
+
+        names = list_import_party_names()
+
+        assert "日本保守党" in names
+        assert len(names) == len(set(names))
+
+
 class TestImportsRunRoute:
     """POST /admin/imports/run の統合テスト（モック DB）。"""
 
@@ -111,6 +123,28 @@ class TestImportsRunRoute:
         mock_create.assert_called_once()
         params = mock_create.call_args[0][0]
         assert params.fetch_only is True
+
+    def test_passes_party_name_to_job_params(self, client: TestClient) -> None:
+        """対象政党が指定された場合は JobParams に渡す。"""
+        with (
+            patch("app.api.admin.router.get_current_admin") as mock_auth,
+            patch("app.api.admin.router.get_active_job", return_value=None),
+            patch("app.api.admin.router.has_gemini_key", return_value=True),
+            patch("app.api.admin.router.create_and_start_job") as mock_create,
+        ):
+            mock_auth.return_value = MagicMock()
+            mock_create.return_value = uuid.uuid4()
+
+            resp = client.post(
+                "/admin/imports/run",
+                data={"job_type": "full", "party_name": "日本保守党"},
+                follow_redirects=False,
+            )
+
+        assert resp.status_code == 302
+        mock_create.assert_called_once()
+        params = mock_create.call_args[0][0]
+        assert params.party_name == "日本保守党"
 
 
 class TestBulkArticleAction:

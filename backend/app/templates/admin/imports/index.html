@@ -33,6 +33,15 @@
         <p class="text-muted small">parties.yml の全フィードを取得して LLM 処理・DB 保存を実行します。</p>
         <form action="/admin/imports/run" method="post">
           <input type="hidden" name="job_type" value="full">
+          <div class="mb-2">
+            <label class="form-label small fw-bold">対象政党</label>
+            <select name="party_name" class="form-select form-select-sm">
+              <option value="">すべての政党</option>
+              {% for party_name in import_party_names %}
+                <option value="{{ party_name }}">{{ party_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
           <button type="submit" class="btn btn-primary btn-sm"
                   {% if active_job or not has_gemini %}disabled{% endif %}>
             実行する
@@ -50,6 +59,15 @@
         <p class="text-muted small">LLM 処理・DB 保存をスキップして、取得できる記事の一覧を確認します。Gemini API キー不要。</p>
         <form action="/admin/imports/run" method="post">
           <input type="hidden" name="job_type" value="fetch_only">
+          <div class="mb-2">
+            <label class="form-label small fw-bold">対象政党</label>
+            <select name="party_name" class="form-select form-select-sm">
+              <option value="">すべての政党</option>
+              {% for party_name in import_party_names %}
+                <option value="{{ party_name }}">{{ party_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
           <button type="submit" class="btn btn-outline-primary btn-sm"
                   {% if active_job %}disabled{% endif %}>
             フェッチのみ実行
@@ -67,6 +85,15 @@
         <p class="text-muted small">LLM 処理まで行いますが DB には保存しません。プロンプト確認用。</p>
         <form action="/admin/imports/run" method="post">
           <input type="hidden" name="job_type" value="dry_run">
+          <div class="mb-2">
+            <label class="form-label small fw-bold">対象政党</label>
+            <select name="party_name" class="form-select form-select-sm">
+              <option value="">すべての政党</option>
+              {% for party_name in import_party_names %}
+                <option value="{{ party_name }}">{{ party_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
           <button type="submit" class="btn btn-outline-secondary btn-sm"
                   {% if active_job or not has_gemini %}disabled{% endif %}>
             dry-run 実行
