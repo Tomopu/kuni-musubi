@@ -18,6 +18,10 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+RUN su node -c "pipx install uv==0.11.10" \
+  && ln -s /home/node/.local/bin/uv /usr/local/bin/uv \
+  && ln -s /home/node/.local/bin/uvx /usr/local/bin/uvx
+
 RUN mkdir -p /home/node/.claude \
   && chown -R node:node /home/node/.claude
 

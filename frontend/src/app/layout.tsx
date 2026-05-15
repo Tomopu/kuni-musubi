@@ -1,15 +1,9 @@
+/* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
-import { BottomNav } from "@/components/layout/bottom-nav";
-
-const notoSansJp = Noto_Sans_JP({
-  subsets: ["latin"],
-  variable: "--font-noto-sans-jp",
-  display: "swap",
-});
+import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: "Kuni-Musubi",
@@ -19,10 +13,18 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ja">
-      <body className={notoSansJp.variable}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP&family=Zen+Maru+Gothic:wght@300;400;500;700;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>
         <Header />
         <main>{children}</main>
-        <BottomNav />
+        <Footer />
       </body>
     </html>
   );

@@ -3,10 +3,27 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import {
+  BadgeHelp,
+  BookOpen,
+  BriefcaseBusiness,
+  Building2,
+  GraduationCap,
+  HeartPulse,
+  Landmark,
+  LockKeyhole,
+  PiggyBank,
+  Shield,
+  Sprout,
+  WalletCards,
+  Zap,
+} from "lucide-react";
 import {
   getPreferences,
-  savePreferences,
   resetPreferences,
+  savePreferences,
+  SKIPPED_INTEREST_CATEGORY_ID,
 } from "@/lib/storage/preferences-storage";
 import {
   AGE_GROUP_OPTIONS,
@@ -14,6 +31,66 @@ import {
   CATEGORY_OPTIONS,
 } from "@/lib/constants/parties";
 import { getPartyColor } from "@/lib/constants/party-colors";
+import { listParties, type PartyResponse } from "@/lib/api/parties-api";
+
+type PartySelectOption = {
+  id: string;
+  name: string;
+  shortName: string;
+  colorHex: string | null;
+};
+
+const DEFAULT_PARTY_OPTIONS: PartySelectOption[] = [
+  { id: "none", name: "特になし", shortName: "なし", colorHex: "#999999" },
+  { id: "unknown", name: "わからない", shortName: "?", colorHex: "#999999" },
+];
+
+function NumberBadge({ n }: { n: number }) {
+  return (
+    <span className="onboarding-step__number" aria-hidden="true">
+      {n}
+    </span>
+  );
+}
+
+const CATEGORY_ICONS = [
+  PiggyBank,
+  HeartPulse,
+  WalletCards,
+  Zap,
+  Sprout,
+  GraduationCap,
+  Shield,
+  Landmark,
+  Building2,
+  Zap,
+  BriefcaseBusiness,
+  BookOpen,
+  WalletCards,
+  Sprout,
+  BadgeHelp,
+];
+
+function toPartyOptions(parties: PartyResponse[]): PartySelectOption[] {
+  return [
+    ...DEFAULT_PARTY_OPTIONS,
+    ...parties.map((party) => ({
+      id: party.id,
+      name: party.name,
+      shortName: party.short_name,
+      colorHex: party.color_hex,
+    })),
+  ];
+}
+
+function fallbackPartyOptions(): PartySelectOption[] {
+  return PARTY_OPTIONS.map((party) => ({
+    id: party.id,
+    name: party.name,
+    shortName: party.shortName,
+    colorHex: getPartyColor(party.id),
+  }));
+}
 
 // 設定フォームコンポーネント（Client Component）
 // 現在の設定値が選択済み状態で表示され、変更は即時 localStorage に保存される
@@ -22,13 +99,31 @@ export function SettingsForm() {
   const [ageGroup, setAgeGroup] = useState<string | null>(null);
   const [supportedPartyId, setSupportedPartyId] = useState<string | null>(null);
   const [interestedCategoryIds, setInterestedCategoryIds] = useState<string[]>([]);
+  const [partyOptions, setPartyOptions] = useState<PartySelectOption[]>(fallbackPartyOptions);
 
   // 1. 初期値を localStorage から読み込む
   useEffect(() => {
     const prefs = getPreferences();
     setAgeGroup(prefs.ageGroup);
     setSupportedPartyId(prefs.supportedPartyId);
-    setInterestedCategoryIds(prefs.interestedCategoryIds);
+    setInterestedCategoryIds(
+      prefs.interestedCategoryIds.filter((id) => id !== SKIPPED_INTEREST_CATEGORY_ID),
+    );
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void listParties()
+      .then((parties) => {
+        if (!cancelled) setPartyOptions(toPartyOptions(parties));
+      })
+      .catch(() => {
+        if (!cancelled) setPartyOptions(fallbackPartyOptions());
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // 2. 年代を変更する（即時保存）
@@ -67,28 +162,21 @@ export function SettingsForm() {
   };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="onboarding-form settings-form">
       {/* 年代を変更 */}
-      <section>
-        <h2
-          className="text-base font-semibold mb-0.5"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          年代を変更
-        </h2>
-        <p
-          className="text-xs mb-3"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          表示内容のカスタマイズに使われます（任意）
-        </p>
-        <div className="flex flex-wrap gap-2">
+      <section className="onboarding-step onboarding-step--age">
+        <div className="onboarding-step__head">
+          <NumberBadge n={1} />
+          <h2>年代を変更</h2>
+          <span>（任意です）</span>
+        </div>
+        <div className="chip-grid">
           {AGE_GROUP_OPTIONS.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => handleAgeGroupChange(option.value)}
-              className="px-4 py-2 rounded-full text-sm border transition-colors duration-150"
+              className="chip-button onboarding-chip"
               style={{
                 borderColor:
                   ageGroup === option.value
@@ -108,43 +196,48 @@ export function SettingsForm() {
             </button>
           ))}
         </div>
+        <Image
+          src="/assets/mascot/mascot-think.png"
+          alt=""
+          width={86}
+          height={86}
+          className="onboarding-step__mascot"
+          aria-hidden="true"
+        />
       </section>
 
       {/* 支持政党を変更 */}
-      <section>
-        <h2
-          className="text-base font-semibold mb-0.5"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          支持政党を変更
-        </h2>
-        <p
-          className="text-xs mb-3"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          支持政党の Good News がホームに表示されます（任意）
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {PARTY_OPTIONS.map((party) => {
+      <section className="onboarding-step onboarding-step--party">
+        <div className="onboarding-step__head">
+          <NumberBadge n={2} />
+          <h2>支持政党を変更</h2>
+          <span>（任意です）</span>
+        </div>
+        <div className="chip-grid">
+          {partyOptions.map((party) => {
             const isSelected = supportedPartyId === party.id;
-            const dotColor = getPartyColor(party.id);
-            const hasDot = party.id !== "none" && party.id !== "unknown" && party.id !== "other";
+            const dotColor = party.colorHex ?? "#999999";
+            const hasDot = party.id !== "none" && party.id !== "unknown";
             return (
               <button
                 key={party.id}
                 type="button"
                 onClick={() => handlePartyChange(party.id)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm border transition-colors duration-150"
+                className={`chip-button onboarding-chip ${
+                  party.name.length >= 12 ? "onboarding-chip--compact" : ""
+                }`}
                 style={{
-                  borderColor: isSelected ? "var(--color-brand-primary)" : "var(--color-border)",
-                  backgroundColor: isSelected ? "var(--color-brand-primary)" : "transparent",
-                  color: isSelected ? "#ffffff" : "var(--color-text-primary)",
+                  borderColor: isSelected ? dotColor : "var(--color-border)",
+                  backgroundColor: isSelected ? `${dotColor}14` : "#ffffff",
+                  color: isSelected
+                    ? "var(--color-text-primary)"
+                    : "var(--color-text-secondary)",
                 }}
               >
                 {hasDot && (
                   <span
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: isSelected ? "rgba(255,255,255,0.8)" : dotColor }}
+                    className="dot"
+                    style={{ backgroundColor: dotColor }}
                   />
                 )}
                 {party.name}
@@ -152,31 +245,33 @@ export function SettingsForm() {
             );
           })}
         </div>
+        <Image
+          src="/assets/mascot/mascot-question.png"
+          alt=""
+          width={88}
+          height={88}
+          className="onboarding-step__mascot"
+          aria-hidden="true"
+        />
       </section>
 
       {/* 関心テーマを変更 */}
-      <section>
-        <h2
-          className="text-base font-semibold mb-0.5"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          関心テーマを変更
-        </h2>
-        <p
-          className="text-xs mb-3"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          複数選択できます（任意）
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {CATEGORY_OPTIONS.map((category) => {
+      <section className="onboarding-step onboarding-step--category">
+        <div className="onboarding-step__head">
+          <NumberBadge n={3} />
+          <h2>関心テーマを変更</h2>
+          <span>（複数可）</span>
+        </div>
+        <div className="chip-grid chip-grid--categories">
+          {CATEGORY_OPTIONS.map((category, index) => {
             const isSelected = interestedCategoryIds.includes(category.id);
+            const Icon = CATEGORY_ICONS[index % CATEGORY_ICONS.length];
             return (
               <button
                 key={category.id}
                 type="button"
                 onClick={() => toggleCategory(category.id)}
-                className="px-4 py-2 rounded-full text-sm border transition-colors duration-150"
+                className="chip-button onboarding-chip"
                 style={{
                   borderColor: isSelected
                     ? "var(--color-brand-primary)"
@@ -187,30 +282,29 @@ export function SettingsForm() {
                   color: isSelected ? "#ffffff" : "var(--color-text-primary)",
                 }}
               >
+                <Icon size={14} />
                 {category.name}
               </button>
             );
           })}
         </div>
+        <Image
+          src="/assets/mascot/mascot-idea.png"
+          alt=""
+          width={86}
+          height={86}
+          className="onboarding-step__mascot"
+          aria-hidden="true"
+        />
       </section>
 
-      {/* プライバシー注意書き（🔒 アイコン付きボックス） */}
-      <div
-        className="flex gap-3 rounded-xl p-4"
-        style={{ backgroundColor: "var(--color-bg-surface)" }}
-      >
-        <span className="flex-shrink-0 text-sm leading-5" aria-hidden="true">
-          🔒
-        </span>
-        <p
-          className="text-xs leading-relaxed"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
+      <div className="privacy-note">
+        <LockKeyhole size={20} />
+        <p>
           回答は端末内に保存され、表示内容の調整に使われます。サーバーには送信されません。
           <Link
             href="/about"
-            className="ml-1 underline transition-opacity duration-150 hover:opacity-70"
-            style={{ color: "var(--color-brand-primary)" }}
+            className="privacy-note__link"
           >
             このアプリの考え方を見る
           </Link>
@@ -218,23 +312,18 @@ export function SettingsForm() {
       </div>
 
       {/* その他の操作 */}
-      <section
-        className="border-t pt-6 flex flex-col gap-3"
-        style={{ borderColor: "var(--color-border)" }}
-      >
+      <section className="settings-actions">
         <button
           type="button"
           onClick={handleRestartOnboarding}
-          className="text-sm text-left transition-opacity duration-150 hover:opacity-70"
-          style={{ color: "var(--color-brand-primary)" }}
+          className="settings-actions__restart"
         >
           オンボーディングをやり直す
         </button>
         <button
           type="button"
           onClick={handleReset}
-          className="text-sm text-left transition-opacity duration-150 hover:opacity-70"
-          style={{ color: "var(--color-text-secondary)" }}
+          className="settings-actions__reset"
         >
           設定をリセットする
         </button>

@@ -8,6 +8,8 @@ export type UserPreferences = {
   onboardingCompleted: boolean;
 };
 
+export const SKIPPED_INTEREST_CATEGORY_ID = "__skipped__";
+
 // デフォルト値
 const DEFAULT_PREFERENCES: UserPreferences = {
   ageGroup: null,
@@ -63,4 +65,15 @@ export function resetPreferences(): void {
 // 4. オンボーディング完了状態を確認する
 export function hasCompletedOnboarding(): boolean {
   return getPreferences().onboardingCompleted;
+}
+
+// 5. ホーム表示前にオンボーディングが必要かを確認する
+export function needsOnboarding(): boolean {
+  const prefs = getPreferences();
+  return (
+    !prefs.onboardingCompleted ||
+    !prefs.ageGroup ||
+    !prefs.supportedPartyId ||
+    prefs.interestedCategoryIds.length === 0
+  );
 }

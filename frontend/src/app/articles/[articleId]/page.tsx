@@ -2,11 +2,21 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  Calendar,
+  Heart,
+  Link as LinkIcon,
+  Star,
+  TriangleAlert,
+  UsersRound,
+} from "lucide-react";
 import { getArticleDetail } from "@/lib/api/articles-api";
+import { MarkdownContent } from "@/components/ui/markdown-content";
 import { PageContainer } from "@/components/layout/page-container";
 import { PartyBadge } from "@/components/ui/party-badge";
 import { CategoryTag } from "@/components/ui/category-tag";
 import { TextThumbnail } from "@/components/ui/text-thumbnail";
+import { ArticleShareActions } from "@/features/articles/components/article-share-actions";
 import { HelpfulButton } from "@/features/articles/components/helpful-button";
 
 type Props = {
@@ -31,21 +41,23 @@ function formatDate(isoString: string): string {
   return `${y}/${m}/${day}`;
 }
 
-// セクション見出し: 左側に緑丸 + テキスト
-function SectionHeading({ children }: { children: ReactNode }) {
+type SectionHeadingTone = "good" | "life" | "issue" | "reaction" | "source";
+
+function SectionHeading({
+  children,
+  icon,
+  tone,
+}: {
+  children: ReactNode;
+  icon: ReactNode;
+  tone: SectionHeadingTone;
+}) {
   return (
-    <div className="flex items-start gap-2 mb-2">
-      <span
-        className="flex-shrink-0 w-3.5 h-3.5 rounded-full mt-0.5"
-        style={{ backgroundColor: "var(--color-brand-primary)" }}
-        aria-hidden="true"
-      />
-      <h2
-        className="text-base font-semibold leading-snug"
-        style={{ color: "var(--color-text-primary)" }}
-      >
-        {children}
-      </h2>
+    <div className={`article-section-heading article-section-heading--${tone}`}>
+      <span className="article-section-heading__icon" aria-hidden="true">
+        {icon}
+      </span>
+      <h2>{children}</h2>
     </div>
   );
 }
@@ -60,11 +72,11 @@ export default async function ArticleDetailPage({ params }: Props) {
   const thumbnailText = article.thumbnail.text ?? article.categories[0]?.name ?? "";
 
   return (
-    <PageContainer className="py-6">
+    <PageContainer className="article-detail-page py-6">
       {/* 戻るリンク */}
       <Link
         href="/"
-        className="inline-flex items-center gap-1 text-sm mb-4 transition-opacity duration-150 hover:opacity-70"
+        className="article-detail-back-link"
         style={{ color: "var(--color-text-secondary)" }}
       >
         &lt; 記事一覧へ
@@ -87,7 +99,8 @@ export default async function ArticleDetailPage({ params }: Props) {
       </div>
 
       {/* 公開日 */}
-      <p className="text-xs mb-4" style={{ color: "var(--color-text-secondary)" }}>
+      <p className="article-detail-date">
+        <Calendar size={16} />
         {formatDate(article.published_at)}
       </p>
 
@@ -99,55 +112,45 @@ export default async function ArticleDetailPage({ params }: Props) {
       />
 
       {/* タイトル */}
-      <h1
-        className="text-xl font-bold leading-snug mb-6"
-        style={{ color: "var(--color-text-primary)" }}
-      >
+      <h1 className="article-detail-title">
         {article.display_title}
       </h1>
 
       {article.display_content && (
-        <div className="flex flex-col gap-6">
+        <div className="article-detail-content">
           {/* 何が良いニュースなのか */}
           <section>
-            <SectionHeading>何が良いニュースなのか</SectionHeading>
-            <p
-              className="text-sm leading-relaxed"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
+            <SectionHeading icon={<Star size={19} />} tone="good">
+              何が Good News なのか？
+            </SectionHeading>
+            <MarkdownContent>
               {article.display_content.positive_point}
-            </p>
+            </MarkdownContent>
           </section>
 
           {/* 生活への影響 */}
           <section>
-            <SectionHeading>生活への影響</SectionHeading>
-            <p
-              className="text-sm leading-relaxed"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
+            <SectionHeading icon={<Heart size={19} />} tone="life">
+              我々の生活への影響
+            </SectionHeading>
+            <MarkdownContent>
               {article.display_content.life_impact}
-            </p>
+            </MarkdownContent>
           </section>
 
           {/* 残る課題（番号付きリスト） */}
           {article.display_content.remaining_issues.length > 0 && (
             <section>
-              <SectionHeading>残る課題</SectionHeading>
-              <ol className="flex flex-col gap-1.5">
+              <SectionHeading icon={<TriangleAlert size={19} />} tone="issue">
+                残る課題
+              </SectionHeading>
+              <ol className="article-issue-list">
                 {article.display_content.remaining_issues.map((issue, i) => (
-                  <li
-                    key={i}
-                    className="flex gap-2 text-sm leading-relaxed"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    <span
-                      className="flex-shrink-0 font-medium w-4"
-                      style={{ color: "var(--color-brand-primary)" }}
-                    >
+                  <li key={i}>
+                    <span>
                       {i + 1}.
                     </span>
-                    <span>{issue}</span>
+                    <span><MarkdownContent>{issue}</MarkdownContent></span>
                   </li>
                 ))}
               </ol>
@@ -157,13 +160,12 @@ export default async function ArticleDetailPage({ params }: Props) {
           {/* 世論・与野党からの評価（ドキュメント方針: 表示する） */}
           {article.display_content.public_reactions_summary && (
             <section>
-              <SectionHeading>世論・与野党からの評価</SectionHeading>
-              <p
-                className="text-sm leading-relaxed"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
+              <SectionHeading icon={<UsersRound size={19} />} tone="reaction">
+                世論・与野党からの評価
+              </SectionHeading>
+              <MarkdownContent>
                 {article.display_content.public_reactions_summary}
-              </p>
+              </MarkdownContent>
             </section>
           )}
         </div>
@@ -172,27 +174,24 @@ export default async function ArticleDetailPage({ params }: Props) {
       {/* 出典・一次情報リンク */}
       {article.sources.length > 0 && (
         <section
-          className="mt-6 pt-6 border-t"
+          className="article-source-section"
           style={{ borderColor: "var(--color-border)" }}
         >
-          <SectionHeading>出典・一次情報</SectionHeading>
-          <ul className="flex flex-col gap-2 mt-1">
+          <SectionHeading icon={<LinkIcon size={19} />} tone="source">
+            出典・一次情報
+          </SectionHeading>
+          <ul>
             {article.sources.map((source, i) => (
               <li key={i}>
                 <a
                   href={source.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm underline transition-opacity duration-150 hover:opacity-70"
-                  style={{ color: "var(--color-brand-primary)" }}
                 >
                   {source.source_name ?? source.source_url}
                 </a>
                 {source.published_at && (
-                  <span
-                    className="ml-2 text-xs"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
+                  <span>
                     {formatDate(source.published_at)}
                   </span>
                 )}
@@ -202,11 +201,10 @@ export default async function ArticleDetailPage({ params }: Props) {
         </section>
       )}
 
+      <ArticleShareActions title={article.display_title} />
+
       {/* 参考になったフィードバック */}
-      <section
-        className="mt-6 pt-6 border-t"
-        style={{ borderColor: "var(--color-border)" }}
-      >
+      <section className="article-feedback-section">
         <HelpfulButton articleId={article.id} />
       </section>
     </PageContainer>

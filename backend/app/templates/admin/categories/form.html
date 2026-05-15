@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'カテゴリ編集' if category else 'カテゴリ新規作成' }} - KM Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fs-4 fw-bold mb-0">{{ 'カテゴリ編集' if category else 'カテゴリ新規作成' }}</h2>
+  <a href="/admin/categories" class="btn btn-outline-secondary btn-sm">一覧に戻る</a>
+</div>
+
+<form action="{{ '/admin/categories/' + category.id|string + '/edit' if category else '/admin/categories/new' }}" method="post">
+  <div class="card mb-4" style="max-width: 640px;">
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="name" class="form-label">名前 <span class="text-danger">*</span></label>
+        <input type="text" id="name" name="name" class="form-control" required
+               value="{{ category.name if category else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="slug" class="form-label">スラッグ <span class="text-danger">*</span></label>
+        <input type="text" id="slug" name="slug" class="form-control" required
+               placeholder="economy"
+               value="{{ category.slug if category else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">説明</label>
+        <textarea id="description" name="description" class="form-control" rows="3">{{ category.description or '' if category else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="display_order" class="form-label">表示順</label>
+        <input type="number" id="display_order" name="display_order" class="form-control"
+               value="{{ category.display_order if category else 0 }}">
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">保存する</button>
+    <a href="/admin/categories" class="btn btn-outline-secondary">キャンセル</a>
+  </div>
+</form>
+{% endblock %}

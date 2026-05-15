@@ -6,12 +6,14 @@ from sqlalchemy import (
     ARRAY,
     Boolean,
     Column,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
     String,
     Table,
     Text,
+    UniqueConstraint,
     func,
     text,
 )
@@ -68,6 +70,19 @@ class Party(Base):
     main_policy_categories: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, default=list
     )
+    policy_headline: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    policy_headline_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    policy_pillars: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=False, default=list
+    )
+    main_policy_tags: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=False, default=list
+    )
+    policy_source_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    policy_source_label: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    policy_source_url: Mapped[Optional[str]] = mapped_column(String(2048), nullable=True)
+    policy_last_checked: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    policy_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     official_url: Mapped[Optional[str]] = mapped_column(String(2048), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -104,6 +119,7 @@ class Article(Base):
     original_title: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     source_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     primary_source_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    raw_content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     published_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
@@ -182,27 +198,6 @@ class ArticleSource(Base):
     article: Mapped["Article"] = relationship(back_populates="sources")
 
 
-class OnboardingEvent(Base):
-    __tablename__ = "onboarding_events"
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    age_group: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    selected_party_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
-    selected_party_status: Mapped[Optional[str]] = mapped_column(
-        String(20), nullable=True
-    )  # none | unknown | skipped | selected
-    interest_category_ids: Mapped[list[str]] = mapped_column(
-        ARRAY(String), nullable=False, default=list
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-
-
 class ArticleEvent(Base):
     __tablename__ = "article_events"
 
@@ -221,6 +216,7 @@ class ArticleEvent(Base):
 
 class DailyArticleStat(Base):
     __tablename__ = "daily_article_stats"
+    __table_args__ = (UniqueConstraint("article_id", "stat_date"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -234,6 +230,7 @@ class DailyArticleStat(Base):
     detail_view_count: Mapped[int] = mapped_column(Integer, default=0)
     source_click_count: Mapped[int] = mapped_column(Integer, default=0)
     helpful_click_count: Mapped[int] = mapped_column(Integer, default=0)
+    unhelpful_click_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -260,3 +257,74 @@ class DailyCategoryStat(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class AdminUser(Base):
+    __tablename__ = "admin_users"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    username: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    hashed_password: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class ImportJob(Base):
+    __tablename__ = "import_jobs"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    job_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    # queued | running | completed | failed | cancelled
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="queued")
+    params: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON
+    total_fetched: Mapped[int] = mapped_column(Integer, default=0)
+    total_processed: Mapped[int] = mapped_column(Integer, default=0)
+    total_saved: Mapped[int] = mapped_column(Integer, default=0)
+    total_skipped_duplicates: Mapped[int] = mapped_column(Integer, default=0)
+    total_errors: Mapped[int] = mapped_column(Integer, default=0)
+    saved_article_ids: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=False, default=list
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    started_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    finished_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    logs: Mapped[list["ImportJobLog"]] = relationship(
+        back_populates="job",
+        order_by="ImportJobLog.created_at",
+        cascade="all, delete-orphan",
+    )
+
+
+class ImportJobLog(Base):
+    __tablename__ = "import_job_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("import_jobs.id"), nullable=False
+    )
+    level: Mapped[str] = mapped_column(String(20), nullable=False, default="info")
+    # info | warning | error
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    log_metadata: Mapped[Optional[str]] = mapped_column("log_metadata", Text, nullable=True)  # JSON
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    job: Mapped["ImportJob"] = relationship(back_populates="logs")

@@ -1,0 +1,111 @@
+{% extends "admin/base.html" %}
+
+{% block title %}ジョブ詳細 - KM Admin{% endblock %}
+
+{% block head_extra %}
+{% if auto_refresh %}
+<meta http-equiv="refresh" content="5">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fs-4 fw-bold mb-0">ジョブ詳細</h2>
+  <div class="d-flex gap-2">
+    {% if auto_refresh %}
+    <span class="badge bg-primary align-self-center">5秒ごとに自動更新中...</span>
+    {% endif %}
+    <a href="/admin/imports/jobs" class="btn btn-outline-secondary btn-sm">一覧に戻る</a>
+  </div>
+</div>
+
+<!-- ジョブ概要 -->
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-sm-3">
+        <div class="text-muted small">種別</div>
+        <div><span class="badge bg-secondary">{{ job.job_type }}</span></div>
+      </div>
+      <div class="col-sm-3">
+        <div class="text-muted small">ステータス</div>
+        <div>
+          {% if job.status == 'completed' %}
+            <span class="badge bg-success fs-6">完了</span>
+          {% elif job.status == 'running' %}
+            <span class="badge bg-primary fs-6">実行中</span>
+          {% elif job.status == 'queued' %}
+            <span class="badge bg-warning text-dark fs-6">待機中</span>
+          {% elif job.status == 'failed' %}
+            <span class="badge bg-danger fs-6">失敗</span>
+          {% else %}
+            <span class="badge bg-secondary fs-6">{{ job.status }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="text-muted small">開始日時</div>
+        <div class="small">{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') if job.started_at else '-' }}</div>
+      </div>
+      <div class="col-sm-3">
+        <div class="text-muted small">終了日時</div>
+        <div class="small">{{ job.finished_at.strftime('%Y-%m-%d %H:%M:%S') if job.finished_at else '-' }}</div>
+      </div>
+    </div>
+    {% if job.status in ['completed', 'failed'] %}
+    <hr>
+    <div class="row g-3 text-center">
+      <div class="col"><div class="text-muted small">取得</div><div class="fw-bold">{{ job.total_fetched }}</div></div>
+      <div class="col"><div class="text-muted small">LLM処理</div><div class="fw-bold">{{ job.total_processed }}</div></div>
+      <div class="col"><div class="text-muted small">保存</div><div class="fw-bold text-success">{{ job.total_saved }}</div></div>
+      <div class="col"><div class="text-muted small">重複スキップ</div><div class="fw-bold text-muted">{{ job.total_skipped_duplicates }}</div></div>
+      <div class="col"><div class="text-muted small">エラー</div><div class="fw-bold {% if job.total_errors > 0 %}text-danger{% endif %}">{{ job.total_errors }}</div></div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ログ -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span class="fw-bold">実行ログ</span>
+    <span class="text-muted small">{{ logs | length }} 件</span>
+  </div>
+  <div class="card-body p-0">
+    <div style="max-height: 600px; overflow-y: auto;">
+      <table class="table table-sm table-hover mb-0 font-monospace" style="font-size: 0.8rem;">
+        <thead class="table-light sticky-top">
+          <tr>
+            <th style="width: 170px;">日時</th>
+            <th style="width: 60px;">レベル</th>
+            <th>メッセージ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr class="{% if log.level == 'error' %}table-danger{% elif log.level == 'warning' %}table-warning{% endif %}">
+            <td class="text-nowrap text-muted">
+              {{ log.created_at.strftime('%H:%M:%S') if log.created_at else '-' }}
+            </td>
+            <td>
+              {% if log.level == 'error' %}
+                <span class="badge bg-danger">ERR</span>
+              {% elif log.level == 'warning' %}
+                <span class="badge bg-warning text-dark">WARN</span>
+              {% else %}
+                <span class="text-muted">INFO</span>
+              {% endif %}
+            </td>
+            <td style="white-space: pre-wrap; word-break: break-all;">{{ log.message }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="3" class="text-center text-muted py-3">ログがありません</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

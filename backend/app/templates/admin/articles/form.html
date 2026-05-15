@@ -1,0 +1,142 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ '記事編集' if article else '記事新規作成' }} - KM Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fs-4 fw-bold mb-0">{{ '記事編集' if article else '記事新規作成' }}</h2>
+  <a href="/admin/articles" class="btn btn-outline-secondary btn-sm">一覧に戻る</a>
+</div>
+
+<form action="{{ '/admin/articles/' + article.id|string + '/edit' if article else '/admin/articles/new' }}" method="post">
+  <!-- 記事基本情報 -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">記事基本情報</div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="original_title" class="form-label">元タイトル</label>
+        <input type="text" id="original_title" name="original_title" class="form-control"
+               value="{{ article.original_title or '' if article else '' }}">
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label for="source_type" class="form-label">ソース種別</label>
+          <input type="text" id="source_type" name="source_type" class="form-control"
+                 placeholder="party_official"
+                 value="{{ article.source_type or '' if article else '' }}">
+        </div>
+        <div class="col-md-8">
+          <label for="primary_source_url" class="form-label">一次情報 URL</label>
+          <input type="text" id="primary_source_url" name="primary_source_url" class="form-control"
+                 value="{{ article.primary_source_url or '' if article else '' }}">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label for="published_at" class="form-label">公開日時 <span class="text-danger">*</span></label>
+          <input type="datetime-local" id="published_at" name="published_at" class="form-control" required
+                 value="{{ article.published_at.strftime('%Y-%m-%dT%H:%M') if article and article.published_at else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label for="status" class="form-label">ステータス</label>
+          <select id="status" name="status" class="form-select">
+            <option value="draft" {{ 'selected' if not article or (article.status not in ['published', 'processed'] and not article.is_published) else '' }}>下書き（draft）</option>
+            <option value="published" {{ 'selected' if article and (article.status in ['published', 'processed'] or article.is_published) else '' }}>公開中（published）</option>
+          </select>
+          <div class="form-text text-muted">published を選ぶと is_published も自動で true になります</div>
+        </div>
+        <div class="col-md-4">
+          <label for="important_rank" class="form-label">重要度ランク</label>
+          <input type="number" id="important_rank" name="important_rank" class="form-control"
+                 value="{{ article.important_rank if article and article.important_rank is not none else '' }}">
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="raw_content" class="form-label">原文（raw_content）</label>
+        <textarea id="raw_content" name="raw_content" class="form-control font-monospace" rows="8"
+                  style="font-size: 0.8rem;">{{ article.raw_content or '' if article else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 関連政党 -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">関連政党</div>
+    <div class="card-body">
+      <div class="row row-cols-2 row-cols-md-3 g-2">
+        {% for party in parties %}
+        <div class="col">
+          <div class="form-check">
+            <input type="checkbox" id="party_{{ party.id }}" name="party_ids"
+                   value="{{ party.id }}"
+                   class="form-check-input"
+                   {{ 'checked' if party.id|string in article_party_ids else '' }}>
+            <label for="party_{{ party.id }}" class="form-check-label">
+              {% if party.color_hex %}
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{{ party.color_hex }};margin-right:4px;vertical-align:middle;"></span>
+              {% endif %}
+              {{ party.name }}
+            </label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="form-text text-muted mt-2">表示順で最初の選択が primary、以降は mentioned になります。未選択でも保存できます。</div>
+    </div>
+  </div>
+
+  <!-- 表示コンテンツ -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">表示コンテンツ</div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="display_title" class="form-label">表示タイトル</label>
+        <input type="text" id="display_title" name="display_title" class="form-control"
+               value="{{ display_content.display_title if display_content else '' }}">
+      </div>
+      <div class="mb-3">
+        <label for="card_summary" class="form-label">カード要約</label>
+        <textarea id="card_summary" name="card_summary" class="form-control" rows="4">{{ display_content.card_summary if display_content else '' }}</textarea>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label for="thumbnail_type" class="form-label">サムネイル種別</label>
+          <select id="thumbnail_type" name="thumbnail_type" class="form-select">
+            <option value="none" {{ 'selected' if not display_content or display_content.thumbnail_type == 'none' else '' }}>none</option>
+            <option value="text" {{ 'selected' if display_content and display_content.thumbnail_type == 'text' else '' }}>text</option>
+            <option value="manual_image" {{ 'selected' if display_content and display_content.thumbnail_type == 'manual_image' else '' }}>manual_image</option>
+            <option value="category_default" {{ 'selected' if display_content and display_content.thumbnail_type == 'category_default' else '' }}>category_default</option>
+          </select>
+        </div>
+        <div class="col-md-8">
+          <label for="thumbnail_text" class="form-label">サムネイルテキスト</label>
+          <input type="text" id="thumbnail_text" name="thumbnail_text" class="form-control"
+                 value="{{ display_content.thumbnail_text or '' if display_content else '' }}">
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="positive_point" class="form-label">ポジティブポイント <span class="text-muted small">（Markdown 可）</span></label>
+        <textarea id="positive_point" name="positive_point" class="form-control" rows="6">{{ display_content.positive_point if display_content else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="life_impact" class="form-label">生活への影響 <span class="text-muted small">（Markdown 可）</span></label>
+        <textarea id="life_impact" name="life_impact" class="form-control" rows="6">{{ display_content.life_impact if display_content else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="remaining_issues" class="form-label">残る課題</label>
+        <textarea id="remaining_issues" name="remaining_issues" class="form-control" rows="4"
+                  placeholder='["課題1","課題2"]'>{{ display_content.remaining_issues if display_content else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label for="public_reactions_summary" class="form-label">世論・反応サマリ <span class="text-muted small">（Markdown 可）</span></label>
+        <textarea id="public_reactions_summary" name="public_reactions_summary" class="form-control" rows="4">{{ display_content.public_reactions_summary or '' if display_content else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">保存する</button>
+    <a href="/admin/articles" class="btn btn-outline-secondary">キャンセル</a>
+  </div>
+</form>
+{% endblock %}

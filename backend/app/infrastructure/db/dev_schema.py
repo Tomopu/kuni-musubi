@@ -16,6 +16,15 @@ DEV_SCHEMA_STATEMENTS = [
     "ALTER TABLE parties ADD COLUMN IF NOT EXISTS manifesto_summary TEXT",
     "ALTER TABLE parties ADD COLUMN IF NOT EXISTS manifesto_promises TEXT[] DEFAULT '{}'",
     "ALTER TABLE parties ADD COLUMN IF NOT EXISTS main_policy_categories TEXT[] DEFAULT '{}'",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS policy_headline TEXT",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS policy_headline_type VARCHAR(100)",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS policy_pillars TEXT[] DEFAULT '{}'",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS main_policy_tags TEXT[] DEFAULT '{}'",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS policy_source_type VARCHAR(100)",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS policy_source_label VARCHAR(200)",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS policy_source_url VARCHAR(2048)",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS policy_last_checked DATE",
+    "ALTER TABLE parties ADD COLUMN IF NOT EXISTS policy_note TEXT",
     "ALTER TABLE parties ADD COLUMN IF NOT EXISTS official_url VARCHAR(2048)",
     "ALTER TABLE parties ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now()",
     "ALTER TABLE parties ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now()",
@@ -36,6 +45,35 @@ DEV_SCHEMA_STATEMENTS = [
     "ALTER TABLE articles ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT false",
     "ALTER TABLE articles ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now()",
     "ALTER TABLE articles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now()",
+    # raw_content カラム追加
+    "ALTER TABLE articles ADD COLUMN IF NOT EXISTS raw_content TEXT",
+    # primary_source_url の重複排除 → ユニークインデックス作成
+    """
+DO $$
+BEGIN
+    -- 重複 URL がある場合、最新レコード1件を残して削除する
+    DELETE FROM articles
+    WHERE id NOT IN (
+        SELECT DISTINCT ON (primary_source_url) id
+        FROM articles
+        WHERE primary_source_url IS NOT NULL
+        ORDER BY primary_source_url, created_at DESC
+    )
+    AND primary_source_url IS NOT NULL;
+
+    -- ユニークインデックスがなければ作成する（NULL は除外）
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes
+        WHERE tablename = 'articles'
+          AND indexname = 'uq_articles_primary_source_url'
+    ) THEN
+        CREATE UNIQUE INDEX uq_articles_primary_source_url
+        ON articles (primary_source_url)
+        WHERE primary_source_url IS NOT NULL;
+    END IF;
+END
+$$;
+""",
     # article_display_contents
     "ALTER TABLE article_display_contents ADD COLUMN IF NOT EXISTS display_title VARCHAR(300) NOT NULL DEFAULT ''",
     "ALTER TABLE article_display_contents ADD COLUMN IF NOT EXISTS card_summary TEXT NOT NULL DEFAULT ''",
@@ -62,8 +100,28 @@ DEV_SCHEMA_STATEMENTS = [
     # article_categories
     "ALTER TABLE article_categories ADD COLUMN IF NOT EXISTS display_order INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE article_categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now()",
-    # onboarding_events
-    "ALTER TABLE onboarding_events ADD COLUMN IF NOT EXISTS selected_party_status VARCHAR(20)",
+    # daily_article_stats
+    (
+        "ALTER TABLE daily_article_stats "
+        "ADD COLUMN IF NOT EXISTS unhelpful_click_count INTEGER DEFAULT 0"
+    ),
+    """
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_constraint
+            WHERE conname = 'daily_article_stats_article_id_stat_date_key'
+        ) THEN
+            ALTER TABLE daily_article_stats
+            ADD CONSTRAINT daily_article_stats_article_id_stat_date_key
+            UNIQUE (article_id, stat_date);
+        END IF;
+    END
+    $$;
+    """,
+    # status 正規化: バッチ保存時の旧値 "processed" を "published" に統一する
+    "UPDATE articles SET status = 'published' WHERE status = 'processed'",
 ]
 
 DEV_SCHEMA_TABLES = [
@@ -74,10 +132,11 @@ DEV_SCHEMA_TABLES = [
     "article_sources",
     "article_parties",
     "article_categories",
-    "onboarding_events",
     "article_events",
     "daily_article_stats",
     "daily_category_stats",
+    "import_jobs",
+    "import_job_logs",
 ]
 
 

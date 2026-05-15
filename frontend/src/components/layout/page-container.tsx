@@ -1,15 +1,14 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 type PageContainerProps = {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
 };
 
-// ページコンテナ: max-w-4xl mx-auto のレイアウト制約
-// lg 以上ではボトムナビがないため pb を小さく設定する
-export function PageContainer({ children, className = "" }: PageContainerProps) {
+export function PageContainer({ children, className = "", style }: PageContainerProps) {
   return (
-    <div className={`max-w-4xl mx-auto px-4 pb-16 lg:pb-4 ${className}`}>
+    <div className={`app-shell ${className}`} style={style}>
       {children}
     </div>
   );

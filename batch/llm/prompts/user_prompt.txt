@@ -1,0 +1,68 @@
+以下の記事テキストを分析し、指定の JSON スキーマで出力してください。
+
+---
+出典URL: {source_url}
+出典名: {source_name}
+公開日: {published_at}
+---
+
+{article_text}
+
+---
+
+出力する JSON スキーマ:
+{{
+  "display_title": "string (300文字以内。です・ます調に近い落ち着いた前向きな表現。感嘆符は禁止)",
+  "card_summary": "string (100文字程度。です・ます調。『だよ』『だね』『注目だ』は禁止)",
+  "related_parties": [
+    {{
+      "party_name": "string (必ず下記の政党名候補から選ぶ。人物名・議員名・省庁名は禁止)",
+      "party_short_name": "string (必ず下記の略称候補から選ぶ)",
+      "relation_type": "primary | mentioned | opposition_view"
+    }}
+  ],
+  "categories": ["string (カテゴリ候補から選ぶ、最大5個)"],
+  "positive_point": "string",
+  "life_impact": "string",
+  "remaining_issues": ["string"],
+  "public_reactions_summary": "string (Markdown箇条書き。例: ・【〇〇党】〜と主張。\\n・【世論】〜という声がある。 情報がない場合は空文字)",
+  "grounding_sources": [
+    {{
+      "url": "string (Google検索で参照した実在のURL。架空のURLは禁止)",
+      "title": "string (参照元ページのタイトル)",
+      "source_type": "party_official | government | local_government | news_media | other"
+    }}
+  ],
+  "source_summary": {{
+    "primary_source_url": "{source_url}",
+    "source_type": "party_official | government | local_government | news_media | other",
+    "source_name": "{source_name}",
+    "published_at": "{published_at}"
+  }},
+  "quality_flags": {{
+    "is_positive_news": true | false,
+    "is_solution_oriented": true | false,
+    "needs_human_review": true | false,
+    "risk_notes": ["string"]
+  }}
+}}
+
+related_parties の政党名候補:
+- 自由民主党 / 自民
+- 立憲民主党 / 立憲
+- 国民民主党 / 国民民主
+- 公明党 / 公明
+- 日本維新の会 / 維新
+- 参政党 / 参政
+- 日本共産党 / 共産
+- れいわ新選組 / れいわ
+- 日本保守党 / 保守
+- 社会民主党 / 社民
+- チームみらい / みらい
+- 中道改革連合 / 中道改革
+- 減税日本・ゆうこく連合 / 減税・ゆうこく
+
+related_parties の注意:
+- 出典名が上記の政党名に一致する場合、その政党を relation_type: "primary" として必ず含めてください。
+- 質問者・答弁者・議員名・大臣名・個人名を party_name に入れてはいけません。
+- 判断できない場合は、出典名の政党だけを primary として出力してください。

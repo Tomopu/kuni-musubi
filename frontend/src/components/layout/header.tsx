@@ -1,67 +1,36 @@
 import Link from "next/link";
+import Image from "next/image";
+import { Info, Landmark, Settings } from "lucide-react";
 
-// ヘッダーコンポーネント
-// 全 viewport: ロゴ（左）+ ℹ️⚙️ アイコン（右）
-// lg 以上: アイコンに加えてホーム・政党のテキストリンクも表示（ボトムナブがないため）
 export function Header() {
   return (
-    <header
-      className="sticky top-0 z-40 border-b"
-      style={{
-        backgroundColor: "var(--color-bg-base)",
-        borderColor: "var(--color-border)",
-      }}
-    >
-      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        {/* ロゴ */}
-        <Link
-          href="/"
-          className="font-bold text-lg transition-opacity duration-150 hover:opacity-70"
-          style={{ color: "var(--color-brand-primary)" }}
-        >
-          Kuni-Musubi
+    <header className="app-header">
+      <div className="app-header__inner">
+        <Link href="/" className="app-logo" aria-label="Kuni-Musubi ホーム">
+          <Image
+            src="/assets/logo/kuni-musubi-logo.png"
+            alt=""
+            width={36}
+            height={36}
+            className="app-logo__image"
+            priority
+            aria-hidden="true"
+          />
+          <span>Kuni-Musubi</span>
         </Link>
 
-        {/* 右側ナビ */}
-        <div className="flex items-center gap-1">
-          {/* デスクトップのみ: ホーム・政党テキストリンク（ボトムナブが lg:hidden のため） */}
-          <nav className="hidden lg:flex items-center gap-4 mr-2">
-            <Link
-              href="/"
-              className="text-sm font-medium transition-opacity duration-150 hover:opacity-70"
-              style={{ color: "var(--color-text-primary)" }}
-            >
-              ホーム
-            </Link>
-            <Link
-              href="/parties"
-              className="text-sm font-medium transition-opacity duration-150 hover:opacity-70"
-              style={{ color: "var(--color-text-primary)" }}
-            >
-              政党
-            </Link>
-          </nav>
-
-          {/* 全 viewport: このアプリについて */}
-          <Link
-            href="/about"
-            aria-label="このアプリについて"
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-base transition-opacity duration-150 hover:opacity-70"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            ℹ️
+        <nav className="app-header__nav" aria-label="メインナビゲーション">
+          <Link href="/parties" aria-label="政党一覧">
+            <Landmark size={18} />
+            <span>政党</span>
           </Link>
-
-          {/* 全 viewport: 設定 */}
-          <Link
-            href="/settings"
-            aria-label="設定"
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-base transition-opacity duration-150 hover:opacity-70"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            ⚙️
+          <Link href="/about" aria-label="このアプリについて">
+            <Info size={20} />
           </Link>
-        </div>
+          <Link href="/settings" aria-label="設定">
+            <Settings size={20} />
+          </Link>
+        </nav>
       </div>
     </header>
   );

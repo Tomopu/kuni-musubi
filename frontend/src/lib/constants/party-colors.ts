@@ -11,7 +11,9 @@ export const PARTY_COLORS: Record<string, string> = {
   sansei: "#EB6100", // 参政
   conservative: "#0073CE", // 保守
   mirai: "#84D6CD", // チームみらい
+  chudo: "#0071BC", // 中道改革連合
   reduce_tax: "#3A4075", // 減税
+  independent: "#999999", // 無所属
   none: "#999999", // 特になし
 };
 

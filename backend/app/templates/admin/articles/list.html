@@ -1,0 +1,113 @@
+{% extends "admin/base.html" %}
+
+{% block title %}記事管理 - KM Admin{% endblock %}
+
+{% block content %}
+<form action="/admin/articles/bulk-action" method="post" id="bulk-form">
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fs-4 fw-bold mb-0">記事管理</h2>
+  <div class="d-flex gap-2 align-items-center">
+    <button type="submit" form="bulk-form" name="action" value="publish"
+            class="btn btn-success btn-sm">選択を公開</button>
+    <button type="submit" form="bulk-form" name="action" value="unpublish"
+            class="btn btn-warning btn-sm">選択を非公開</button>
+    <button type="submit" form="bulk-form" name="action" value="draft"
+            class="btn btn-outline-secondary btn-sm">選択を下書き</button>
+    <a href="/admin/articles/new" class="btn btn-primary btn-sm ms-2">新規作成</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width: 40px;">
+            <input type="checkbox" id="select-all" class="form-check-input">
+          </th>
+          <th style="width: 120px;">公開日</th>
+          <th>表示タイトル</th>
+          <th style="width: 120px;">政党</th>
+          <th style="width: 90px;">ステータス</th>
+          <th style="width: 60px;">公開</th>
+          <th style="width: 120px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for article in articles %}
+        <tr>
+          <td>
+            <input type="checkbox" name="article_ids" value="{{ article.id }}"
+                   class="form-check-input article-checkbox">
+          </td>
+          <td class="text-nowrap small text-muted">
+            {{ article.published_at.strftime('%Y-%m-%d') if article.published_at else '-' }}
+          </td>
+          <td>
+            {% if article.display_content %}
+              {{ article.display_content.display_title }}
+            {% else %}
+              <span class="text-muted">{{ article.original_title or '(タイトルなし)' }}</span>
+            {% endif %}
+          </td>
+          <td class="small">
+            {% for party in article.parties %}
+              <span class="badge bg-secondary">{{ party.short_name }}</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% set normalized_status = 'published' if article.status in ['published', 'processed'] or article.is_published else 'draft' %}
+            <span class="badge {{ 'bg-success' if normalized_status == 'published' else 'bg-secondary' }}">
+              {{ normalized_status }}
+            </span>
+          </td>
+          <td class="text-center">
+            {% if article.is_published %}
+              <span class="text-success">&#10003;</span>
+            {% else %}
+              <span class="text-muted">-</span>
+            {% endif %}
+          </td>
+          <td class="text-nowrap">
+            <a href="/admin/articles/{{ article.id }}/edit" class="btn btn-outline-primary btn-sm">編集</a>
+            <form action="/admin/articles/{{ article.id }}/delete" method="post" class="d-inline"
+                  onsubmit="return confirm('この記事を削除してもよいですか？');">
+              <button type="submit" class="btn btn-outline-danger btn-sm">削除</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">記事がありません</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if total_pages > 1 %}
+<nav class="mt-3" aria-label="ページネーション">
+  <ul class="pagination pagination-sm">
+    <li class="page-item {{ 'disabled' if page <= 1 }}">
+      <a class="page-link" href="/admin/articles?page={{ page - 1 }}">前へ</a>
+    </li>
+    {% for p in range(1, total_pages + 1) %}
+    <li class="page-item {{ 'active' if p == page }}">
+      <a class="page-link" href="/admin/articles?page={{ p }}">{{ p }}</a>
+    </li>
+    {% endfor %}
+    <li class="page-item {{ 'disabled' if page >= total_pages }}">
+      <a class="page-link" href="/admin/articles?page={{ page + 1 }}">次へ</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+</form>
+
+<script>
+document.getElementById('select-all').addEventListener('change', function() {
+  document.querySelectorAll('.article-checkbox').forEach(cb => cb.checked = this.checked);
+});
+</script>
+{% endblock %}

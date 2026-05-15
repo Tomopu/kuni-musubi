@@ -13,6 +13,12 @@ type SemiDonutChartProps = {
   title: string;
   total: number;
   segments: ChartSegment[];
+  hideLegend?: boolean;
+  flipped?: boolean;
+  highlightedId?: string | null;
+  onHighlight?: (id: string | null) => void;
+  onSelect?: (id: string) => void;
+  className?: string;
 };
 
 // fraction (0 = 左端, 1 = 右端) → SVG 上半円の座標
@@ -30,31 +36,51 @@ function segPath(
   innerR: number,
   s: number,
   e: number,
+  flipped: boolean,
 ): string {
   if (e - s <= 0) return "";
   const large = 0;
-  const os = polar(cx, cy, outerR, s);
-  const oe = polar(cx, cy, outerR, e);
-  const ie = polar(cx, cy, innerR, e);
-  const is = polar(cx, cy, innerR, s);
+  const point = flipped
+    ? (r: number, f: number) => {
+        const a = Math.PI * (1 - f);
+        return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+      }
+    : (r: number, f: number) => polar(cx, cy, r, f);
+  const os = point(outerR, s);
+  const oe = point(outerR, e);
+  const ie = point(innerR, e);
+  const is = point(innerR, s);
+  const outerSweep = flipped ? 0 : 1;
+  const innerSweep = flipped ? 1 : 0;
   const f = (v: number) => v.toFixed(2);
   return [
     `M${f(os.x)},${f(os.y)}`,
-    `A${outerR},${outerR},0,${large},1,${f(oe.x)},${f(oe.y)}`,
+    `A${outerR},${outerR},0,${large},${outerSweep},${f(oe.x)},${f(oe.y)}`,
     `L${f(ie.x)},${f(ie.y)}`,
-    `A${innerR},${innerR},0,${large},0,${f(is.x)},${f(is.y)}Z`,
+    `A${innerR},${innerR},0,${large},${innerSweep},${f(is.x)},${f(is.y)}Z`,
   ].join(" ");
 }
 
 // 半円ドーナツグラフ（衆議院 / 参議院それぞれに使用）
-export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) {
+export function SemiDonutChart({
+  title,
+  total,
+  segments,
+  hideLegend = false,
+  flipped = false,
+  highlightedId,
+  onHighlight,
+  onSelect,
+  className = "",
+}: SemiDonutChartProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const activeId = highlightedId ?? hoveredId;
 
   // SVG レイアウト定数
   const VB_W = 300;
   const VB_H = 185;
   const CX = 150;
-  const CY = 172;
+  const CY = flipped ? 13 : 172;
   const OUTER_R = 136;
   const INNER_R = 78;
   const LABEL_R = OUTER_R + 15; // % ラベルの半径
@@ -63,6 +89,9 @@ export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) 
   const MIN_LABEL_PCT = 5; // ラベルを表示する最小割合(%)
   const TOOLTIP_W = 136;
   const TOOLTIP_H = 44;
+  const titleY = flipped ? CY + 26 : CY - 52;
+  const totalY = flipped ? CY + 50 : CY - 24;
+  const seatsY = flipped ? CY + 64 : CY - 8;
 
   // セグメントをビルドする（seats > 0 のみ）
   type Built = ChartSegment & {
@@ -87,41 +116,61 @@ export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) 
   }
 
   // ホバー中セグメントのツールチップ座標を計算する
-  const hovered = hoveredId ? built.find((s) => s.id === hoveredId) : null;
+  const hovered = activeId ? built.find((s) => s.id === activeId) : null;
   let ttX = CX;
   let ttY = 8;
   if (hovered) {
-    const mid = polar(CX, CY, (OUTER_R + INNER_R) / 2, hovered.midFrac);
+    const mid = flipped
+      ? (() => {
+          const a = Math.PI * (1 - hovered.midFrac);
+          return {
+            x: CX + ((OUTER_R + INNER_R) / 2) * Math.cos(a),
+            y: CY + ((OUTER_R + INNER_R) / 2) * Math.sin(a),
+          };
+        })()
+      : polar(CX, CY, (OUTER_R + INNER_R) / 2, hovered.midFrac);
     ttX = Math.max(TOOLTIP_W / 2 + 4, Math.min(mid.x, VB_W - TOOLTIP_W / 2 - 4));
     ttY = Math.max(mid.y - TOOLTIP_H - 10, 4);
   }
 
   return (
-    <div>
+    <div className={`semi-donut ${flipped ? "semi-donut--flipped" : ""} ${className}`}>
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
-        className="w-full"
+        className="semi-donut__svg"
         aria-label={`${title} 議席分布グラフ`}
       >
         {/* セグメント */}
         {built.map((seg) => {
-          const d = segPath(CX, CY, OUTER_R, INNER_R, seg.startFrac, seg.endFrac);
-          const labelPt = polar(CX, CY, LABEL_R, seg.midFrac);
+          const d = segPath(CX, CY, OUTER_R, INNER_R, seg.startFrac, seg.endFrac, flipped);
+          const labelPt = flipped
+            ? (() => {
+                const a = Math.PI * (1 - seg.midFrac);
+                return { x: CX + LABEL_R * Math.cos(a), y: CY + LABEL_R * Math.sin(a) };
+              })()
+            : polar(CX, CY, LABEL_R, seg.midFrac);
           const showLabel = parseFloat(seg.pct) >= MIN_LABEL_PCT;
-          const isHovered = seg.id === hoveredId;
+          const isHovered = seg.id === activeId;
 
           return (
             <g
               key={seg.id}
-              onMouseEnter={() => setHoveredId(seg.id)}
-              onMouseLeave={() => setHoveredId(null)}
+              onMouseEnter={() => {
+                setHoveredId(seg.id);
+                onHighlight?.(seg.id);
+              }}
+              onMouseLeave={() => {
+                setHoveredId(null);
+                onHighlight?.(null);
+              }}
+              onClick={() => onSelect?.(seg.id)}
               style={{ cursor: "pointer" }}
             >
               <path
                 d={d}
                 fill={seg.color}
                 style={{
-                  opacity: hoveredId !== null && !isHovered ? 0.55 : 1,
+                  opacity: activeId !== null && !isHovered ? 0.35 : 1,
                   transition: "opacity 0.15s",
                 }}
               />
@@ -132,7 +181,7 @@ export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) 
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fontSize="8"
-                  fontWeight="700"
+                  fontWeight="500"
                   fill={seg.color}
                   style={{ pointerEvents: "none", userSelect: "none" }}
                 >
@@ -144,19 +193,19 @@ export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) 
         })}
 
         {/* 直径ベースライン */}
-        <line
+        {/* <line
           x1={CX - OUTER_R}
           y1={CY}
           x2={CX + OUTER_R}
           y2={CY}
           stroke="var(--color-border)"
           strokeWidth="1.5"
-        />
+        /> */}
 
         {/* 中央テキスト: 院名 + 合計議席 */}
         <text
           x={CX}
-          y={CY - 44}
+          y={titleY}
           textAnchor="middle"
           fontSize="11"
           fill="var(--color-text-secondary)"
@@ -166,10 +215,10 @@ export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) 
         </text>
         <text
           x={CX}
-          y={CY - 22}
+          y={totalY}
           textAnchor="middle"
           fontSize="26"
-          fontWeight="700"
+          fontWeight="500"
           fill="var(--color-text-primary)"
           style={{ userSelect: "none" }}
         >
@@ -177,7 +226,7 @@ export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) 
         </text>
         <text
           x={CX}
-          y={CY - 7}
+          y={seatsY}
           textAnchor="middle"
           fontSize="9"
           fill="var(--color-text-secondary)"
@@ -202,7 +251,7 @@ export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) 
               y={ttY + 16}
               textAnchor="middle"
               fontSize="10"
-              fontWeight="700"
+              fontWeight="500"
               fill="#ffffff"
               style={{ userSelect: "none" }}
             >
@@ -223,44 +272,53 @@ export function SemiDonutChart({ title, total, segments }: SemiDonutChartProps) 
       </svg>
 
       {/* 凡例（政党名 + 議席数 + %） */}
-      <ul className="mt-1 px-1 space-y-0.5">
-        {built.map((seg) => (
-          <li
-            key={seg.id}
-            className="flex items-center gap-2 py-0.5 rounded cursor-pointer"
-            style={{
-              backgroundColor:
-                hoveredId === seg.id ? `${seg.color}18` : "transparent",
-              transition: "background-color 0.12s",
-            }}
-            onMouseEnter={() => setHoveredId(seg.id)}
-            onMouseLeave={() => setHoveredId(null)}
-          >
-            <span
-              className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: seg.color }}
-            />
-            <span
-              className="flex-1 text-xs leading-none"
-              style={{ color: "var(--color-text-primary)" }}
+      {!hideLegend && (
+        <ul className="semi-donut__legend">
+          {built.map((seg) => (
+            <li
+              key={seg.id}
+              className="semi-donut__legend-item"
+              style={{
+                backgroundColor:
+                  activeId === seg.id ? `${seg.color}18` : "transparent",
+                transition: "background-color 0.12s",
+              }}
+              onMouseEnter={() => {
+                setHoveredId(seg.id);
+                onHighlight?.(seg.id);
+              }}
+              onMouseLeave={() => {
+                setHoveredId(null);
+                onHighlight?.(null);
+              }}
+              onClick={() => onSelect?.(seg.id)}
             >
-              {seg.name}
-            </span>
-            <span
-              className="text-xs tabular-nums flex-shrink-0"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              {seg.seats}
-            </span>
-            <span
-              className="text-xs tabular-nums w-10 text-right flex-shrink-0 font-medium"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              {seg.pct}%
-            </span>
-          </li>
-        ))}
-      </ul>
+              <span
+                className="semi-donut__legend-dot"
+                style={{ backgroundColor: seg.color }}
+              />
+              <span
+                className="semi-donut__legend-name"
+                style={{ color: "var(--color-text-primary)" }}
+              >
+                {seg.name}
+              </span>
+              <span
+                className="semi-donut__legend-seats"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                {seg.seats}
+              </span>
+              <span
+                className="semi-donut__legend-pct"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                {seg.pct}%
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

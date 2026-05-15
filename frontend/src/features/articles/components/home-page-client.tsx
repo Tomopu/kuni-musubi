@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getPreferences } from "@/lib/storage/preferences-storage";
+import { getPreferences, needsOnboarding } from "@/lib/storage/preferences-storage";
 import {
   listArticles,
   type ArticleCardResponse,
@@ -50,7 +50,7 @@ export function HomePageClient() {
   // 1. 初期化処理: オンボーディング未完了ならリダイレクト
   useEffect(() => {
     const prefs = getPreferences();
-    if (!prefs.onboardingCompleted) {
+    if (needsOnboarding()) {
       router.replace("/onboarding");
       return;
     }
@@ -151,7 +151,7 @@ export function HomePageClient() {
           className="rounded-xl p-6 mb-6 text-white"
           style={{ backgroundColor: heroPartyName ? heroColor : "#4CAF50" }}
         >
-          <p className="text-lg font-bold">
+          <p className="text-lg font-medium">
             {heroPartyName
               ? `${heroPartyName}のGood Newsをお届け`
               : "各政党のGood Newsをお届け"}

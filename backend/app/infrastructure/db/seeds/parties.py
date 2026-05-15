@@ -1,13 +1,14 @@
 # 日本の政党シードデータ
-# docs/research/data/20260504_government_data.json を正として読み込む。
+# docs/research/data/20260513_government_data.json を正として読み込む。
 
 import json
 import uuid
+from datetime import date
 from pathlib import Path
 from typing import Any
 
 
-RESEARCH_DATA_FILENAME = "20260504_government_data.json"
+RESEARCH_DATA_FILENAME = "20260513_government_data.json"
 
 
 def _resolve_research_data_path() -> Path:
@@ -54,6 +55,12 @@ def _int_or_none(value: Any) -> int | None:
     return int(value)
 
 
+def _date_or_none(value: Any) -> date | None:
+    if value is None or value == "":
+        return None
+    return date.fromisoformat(str(value))
+
+
 def _string_list(value: Any) -> list[str]:
     if not isinstance(value, list):
         return []
@@ -66,29 +73,40 @@ def load_party_seeds() -> list[dict[str, Any]]:
 
     seeds: list[dict[str, Any]] = []
     for index, item in enumerate(raw_parties, start=1):
-        name = str(item["政党名"]).strip()
-        manifesto_promises = _string_list(item.get("主要政策・公約"))
+        name = str(item["name"]).strip()
+        policy_pillars = _string_list(item.get("policy_pillars"))
+        main_policy_tags = _string_list(item.get("main_policy_tags"))
         seeds.append(
             {
-                "id": PARTY_IDS_BY_NAME[name],
+                "id": uuid.UUID(item["id"]) if item.get("id") else PARTY_IDS_BY_NAME[name],
                 "name": name,
-                "short_name": _string_or_none(item.get("略称")) or name,
-                "color_hex": _string_or_none(item.get("テーマカラー")),
-                "is_active": True,
-                "display_order": index,
-                "founded_year": _int_or_none(item.get("成立年")),
-                "leader_name": _string_or_none(item.get("代表者")),
+                "short_name": _string_or_none(item.get("short_name")) or name,
+                "color_hex": _string_or_none(item.get("color_hex")),
+                "is_active": bool(item.get("is_active", True)),
+                "display_order": _int_or_none(item.get("display_order")) or index,
+                "founded_year": _int_or_none(item.get("founded_year")),
+                "leader_name": _string_or_none(item.get("leader_name")),
                 "house_of_representatives_seats": _int_or_none(
-                    item.get("衆議院議席数")
+                    item.get("house_of_representatives_seats")
                 ),
                 "house_of_councillors_seats": _int_or_none(
-                    item.get("参議院議席数")
+                    item.get("house_of_councillors_seats")
                 ),
-                "ideology_summary": _string_or_none(item.get("党の政治理念")),
-                "manifesto_summary": "\n".join(manifesto_promises) or None,
-                "manifesto_promises": manifesto_promises,
-                "main_policy_categories": _string_list(item.get("主な政策カテゴリ")),
-                "official_url": _string_or_none(item.get("公式サイトURL")),
+                "policy_headline": _string_or_none(item.get("policy_headline")),
+                "policy_headline_type": _string_or_none(item.get("policy_headline_type")),
+                "policy_pillars": policy_pillars,
+                "main_policy_tags": main_policy_tags,
+                "policy_source_type": _string_or_none(item.get("policy_source_type")),
+                "policy_source_label": _string_or_none(item.get("policy_source_label")),
+                "policy_source_url": _string_or_none(item.get("policy_source_url")),
+                "policy_last_checked": _date_or_none(item.get("policy_last_checked")),
+                "policy_note": _string_or_none(item.get("policy_note")),
+                "official_url": _string_or_none(item.get("official_url")),
+                # 旧 API / 画面との互換用。新データから導出して空にしない。
+                "ideology_summary": _string_or_none(item.get("policy_headline")),
+                "manifesto_summary": "\n".join(policy_pillars) or None,
+                "manifesto_promises": policy_pillars,
+                "main_policy_categories": main_policy_tags,
             }
         )
     return seeds

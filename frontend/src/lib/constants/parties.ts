@@ -20,7 +20,9 @@ export const PARTY_OPTIONS: PartyOption[] = [
   { id: "sdp", name: "社会民主党", shortName: "社民" },
   { id: "conservative", name: "日本保守党", shortName: "保守" },
   { id: "mirai", name: "チームみらい", shortName: "チみ" },
-  { id: "other", name: "その他", shortName: "他" },
+  { id: "chudo", name: "中道改革連合", shortName: "中道" },
+  { id: "reduce_tax", name: "減税日本・ゆうこく連合", shortName: "減税" },
+  { id: "independent", name: "無所属", shortName: "無所属" },
 ];
 
 // 年代の選択肢

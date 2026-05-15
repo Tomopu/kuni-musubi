@@ -9,6 +9,16 @@ dependencies = [
     "pydantic-settings>=2.6.0",
     "httpx>=0.27.0",
     "beautifulsoup4>=4.12.0",
+    "lxml>=5.0.0",
+    "google-genai>=1.0.0",
+    "pyyaml>=6.0.0",
+    "tenacity>=8.0.0",
+    "pypdf>=4.0.0",
+    "youtube-transcript-api>=1.0.0",
+    "feedparser>=6.0.0",
+    # DB モデルは backend/app/infrastructure/db/models.py を共用するため、
+    # batch の親ディレクトリと backend root を PYTHONPATH に含めて実行する。
+    # 例（batch/ ディレクトリから）: PYTHONPATH=..:../backend uv run python -m batch.main
 ]
 
 [dependency-groups]
@@ -29,3 +39,8 @@ select = ["E", "F", "I"]
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+# batch ディレクトリから実行する: PYTHONPATH=.. uv run pytest
+# DB モデルが必要なテストは PYTHONPATH=..:../backend が必要
+testpaths = ["tests"]

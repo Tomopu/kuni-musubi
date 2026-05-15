@@ -1,0 +1,171 @@
+{% extends "admin/base.html" %}
+
+{% block title %}記事取り込み - KM Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fs-4 fw-bold mb-0">記事取り込み</h2>
+  <a href="/admin/imports/jobs" class="btn btn-outline-secondary btn-sm">ジョブ履歴</a>
+</div>
+
+{% if active_job %}
+<div class="alert alert-warning">
+  <strong>実行中のジョブがあります（{{ active_job.status }}）。</strong>
+  完了後に新規ジョブを開始してください。
+  <a href="/admin/imports/jobs/{{ active_job.id }}" class="alert-link ms-2">確認する →</a>
+</div>
+{% endif %}
+
+{% if not has_gemini %}
+<div class="alert alert-danger">
+  <strong>GEMINI_API_KEY が設定されていません。</strong>
+  fetch-only 以外のジョブは実行できません。
+</div>
+{% endif %}
+
+<div class="row g-3">
+
+  <!-- 通常バッチ実行 -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header fw-bold">通常バッチ実行</div>
+      <div class="card-body">
+        <p class="text-muted small">parties.yml の全フィードを取得して LLM 処理・DB 保存を実行します。</p>
+        <form action="/admin/imports/run" method="post">
+          <input type="hidden" name="job_type" value="full">
+          <button type="submit" class="btn btn-primary btn-sm"
+                  {% if active_job or not has_gemini %}disabled{% endif %}>
+            実行する
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- fetch-only -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header fw-bold">フェッチのみ確認</div>
+      <div class="card-body">
+        <p class="text-muted small">LLM 処理・DB 保存をスキップして、取得できる記事の一覧を確認します。Gemini API キー不要。</p>
+        <form action="/admin/imports/run" method="post">
+          <input type="hidden" name="job_type" value="fetch_only">
+          <button type="submit" class="btn btn-outline-primary btn-sm"
+                  {% if active_job %}disabled{% endif %}>
+            フェッチのみ実行
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- dry-run -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header fw-bold">dry-run（DB 保存なし）</div>
+      <div class="card-body">
+        <p class="text-muted small">LLM 処理まで行いますが DB には保存しません。プロンプト確認用。</p>
+        <form action="/admin/imports/run" method="post">
+          <input type="hidden" name="job_type" value="dry_run">
+          <button type="submit" class="btn btn-outline-secondary btn-sm"
+                  {% if active_job or not has_gemini %}disabled{% endif %}>
+            dry-run 実行
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 単一 URL 取り込み -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header fw-bold">単一 URL 取り込み</div>
+      <div class="card-body">
+        <form action="/admin/imports/run" method="post">
+          <input type="hidden" name="job_type" value="single_url">
+          <div class="mb-2">
+            <label class="form-label small fw-bold">URL</label>
+            <input type="url" name="single_url" class="form-control form-control-sm"
+                   placeholder="https://example.com/news/article.html" required>
+            <div class="form-text text-muted">
+              <strong>.pdf</strong> で終わる URL は PDF 直接解析、
+              <strong>youtube.com / youtu.be</strong> は字幕取得を自動で行います。
+            </div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col">
+              <label class="form-label small fw-bold">source_name</label>
+              <input type="text" name="url_source_name" class="form-control form-control-sm"
+                     value="manual">
+            </div>
+            <div class="col">
+              <label class="form-label small fw-bold">source_type</label>
+              <select name="url_source_type" class="form-select form-select-sm">
+                <option value="party_official">party_official</option>
+                <option value="government">government</option>
+                <option value="news_media">news_media</option>
+                <option value="other">other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="dry_run" id="dry_run_single">
+            <label class="form-check-label small" for="dry_run_single">dry-run（DB 保存なし）</label>
+          </div>
+          <button type="submit" class="btn btn-outline-primary btn-sm"
+                  {% if active_job or not has_gemini %}disabled{% endif %}>
+            取り込む
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- URL リスト取り込み -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header fw-bold">URL リスト取り込み</div>
+      <div class="card-body">
+        <form action="/admin/imports/run" method="post">
+          <input type="hidden" name="job_type" value="url_list">
+          <div class="mb-2">
+            <label class="form-label small fw-bold">URL リスト（1行1URL）</label>
+            <textarea name="url_list_text" class="form-control form-control-sm font-monospace"
+                      rows="6" placeholder="https://example.com/news/1&#10;https://example.com/news/2&#10;https://example.com/doc.pdf&#10;https://www.youtube.com/watch?v=xxxxx"></textarea>
+            <div class="form-text text-muted">
+              <strong>.pdf</strong> 結末の URL は PDF 直接解析、
+              <strong>youtube.com / youtu.be</strong> URL は日本語字幕取得を自動で行います。
+              HTML / PDF / YouTube を混在させることもできます。
+            </div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-auto">
+              <label class="form-label small fw-bold">共通 source_name</label>
+              <input type="text" name="url_source_name" class="form-control form-control-sm"
+                     value="manual">
+            </div>
+            <div class="col-auto">
+              <label class="form-label small fw-bold">共通 source_type</label>
+              <select name="url_source_type" class="form-select form-select-sm">
+                <option value="party_official">party_official</option>
+                <option value="government">government</option>
+                <option value="news_media">news_media</option>
+                <option value="other">other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="dry_run" id="dry_run_list">
+            <label class="form-check-label small" for="dry_run_list">dry-run（DB 保存なし）</label>
+          </div>
+          <button type="submit" class="btn btn-outline-primary btn-sm"
+                  {% if active_job or not has_gemini %}disabled{% endif %}>
+            まとめて取り込む
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
