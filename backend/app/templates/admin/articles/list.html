@@ -70,10 +70,8 @@
           </td>
           <td class="text-nowrap">
             <a href="/admin/articles/{{ article.id }}/edit" class="btn btn-outline-primary btn-sm">編集</a>
-            <form action="/admin/articles/{{ article.id }}/delete" method="post" class="d-inline"
-                  onsubmit="return confirm('この記事を削除してもよいですか？');">
-              <button type="submit" class="btn btn-outline-danger btn-sm">削除</button>
-            </form>
+            <button type="submit" form="delete-article-{{ article.id }}"
+                    class="btn btn-outline-danger btn-sm">削除</button>
           </td>
         </tr>
         {% else %}
@@ -104,6 +102,13 @@
 </nav>
 {% endif %}
 </form>
+
+{% for article in articles %}
+<form id="delete-article-{{ article.id }}"
+      action="/admin/articles/{{ article.id }}/delete"
+      method="post"
+      onsubmit="return confirm('この記事を削除してもよいですか？');"></form>
+{% endfor %}
 
 <script>
 document.getElementById('select-all').addEventListener('change', function() {
