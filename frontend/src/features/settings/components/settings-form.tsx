@@ -5,30 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  BadgeHelp,
-  BookOpen,
-  BriefcaseBusiness,
-  Building2,
-  GraduationCap,
-  HeartPulse,
-  Landmark,
   LockKeyhole,
-  PiggyBank,
-  Shield,
-  Sprout,
-  WalletCards,
-  Zap,
 } from "lucide-react";
 import {
   getPreferences,
   resetPreferences,
   savePreferences,
-  SKIPPED_INTEREST_CATEGORY_ID,
 } from "@/lib/storage/preferences-storage";
 import {
   AGE_GROUP_OPTIONS,
   PARTY_OPTIONS,
-  CATEGORY_OPTIONS,
 } from "@/lib/constants/parties";
 import { getPartyColor } from "@/lib/constants/party-colors";
 import { listParties, type PartyResponse } from "@/lib/api/parties-api";
@@ -52,24 +38,6 @@ function NumberBadge({ n }: { n: number }) {
     </span>
   );
 }
-
-const CATEGORY_ICONS = [
-  PiggyBank,
-  HeartPulse,
-  WalletCards,
-  Zap,
-  Sprout,
-  GraduationCap,
-  Shield,
-  Landmark,
-  Building2,
-  Zap,
-  BriefcaseBusiness,
-  BookOpen,
-  WalletCards,
-  Sprout,
-  BadgeHelp,
-];
 
 function toPartyOptions(parties: PartyResponse[]): PartySelectOption[] {
   return [
@@ -98,7 +66,6 @@ export function SettingsForm() {
   const router = useRouter();
   const [ageGroup, setAgeGroup] = useState<string | null>(null);
   const [supportedPartyId, setSupportedPartyId] = useState<string | null>(null);
-  const [interestedCategoryIds, setInterestedCategoryIds] = useState<string[]>([]);
   const [partyOptions, setPartyOptions] = useState<PartySelectOption[]>(fallbackPartyOptions);
 
   // 1. 初期値を localStorage から読み込む
@@ -106,9 +73,6 @@ export function SettingsForm() {
     const prefs = getPreferences();
     setAgeGroup(prefs.ageGroup);
     setSupportedPartyId(prefs.supportedPartyId);
-    setInterestedCategoryIds(
-      prefs.interestedCategoryIds.filter((id) => id !== SKIPPED_INTEREST_CATEGORY_ID),
-    );
   }, []);
 
   useEffect(() => {
@@ -138,27 +102,17 @@ export function SettingsForm() {
     savePreferences({ supportedPartyId: value });
   };
 
-  // 4. 関心テーマをトグルする（即時保存）
-  const toggleCategory = (id: string) => {
-    const updated = interestedCategoryIds.includes(id)
-      ? interestedCategoryIds.filter((c) => c !== id)
-      : [...interestedCategoryIds, id];
-    setInterestedCategoryIds(updated);
-    savePreferences({ interestedCategoryIds: updated });
-  };
-
-  // 5. オンボーディングをやり直す
+  // 4. オンボーディングをやり直す
   const handleRestartOnboarding = () => {
     savePreferences({ onboardingCompleted: false });
     router.push("/onboarding");
   };
 
-  // 6. 設定をリセットする
+  // 5. 設定をリセットする
   const handleReset = () => {
     resetPreferences();
     setAgeGroup(null);
     setSupportedPartyId(null);
-    setInterestedCategoryIds([]);
   };
 
   return (
@@ -255,7 +209,8 @@ export function SettingsForm() {
         />
       </section>
 
-      {/* 関心テーマを変更 */}
+      {/*
+      関心テーマを変更
       <section className="onboarding-step onboarding-step--category">
         <div className="onboarding-step__head">
           <NumberBadge n={3} />
@@ -297,6 +252,7 @@ export function SettingsForm() {
           aria-hidden="true"
         />
       </section>
+      */}
 
       <div className="privacy-note">
         <LockKeyhole size={20} />
