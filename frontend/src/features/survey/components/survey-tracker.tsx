@@ -11,6 +11,11 @@ export function SurveyTracker() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    if (pathname.startsWith("/onboarding")) {
+      setIsOpen(false);
+      return;
+    }
+
     // 1. ページ遷移をカウントする
     const count = incrementSurveyNavCount();
     // 2. 表示条件を確認する（既に開いている場合は重複表示しない）

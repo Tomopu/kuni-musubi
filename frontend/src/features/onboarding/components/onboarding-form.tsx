@@ -5,19 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  BadgeHelp,
-  BookOpen,
-  BriefcaseBusiness,
-  Building2,
-  GraduationCap,
-  HeartPulse,
-  Landmark,
   LockKeyhole,
-  PiggyBank,
-  Shield,
-  Sprout,
-  WalletCards,
-  Zap,
 } from "lucide-react";
 import {
   getPreferences,
@@ -27,7 +15,6 @@ import {
 import {
   AGE_GROUP_OPTIONS,
   PARTY_OPTIONS,
-  CATEGORY_OPTIONS,
 } from "@/lib/constants/parties";
 import { getPartyColor } from "@/lib/constants/party-colors";
 import { listParties, type PartyResponse } from "@/lib/api/parties-api";
@@ -44,24 +31,6 @@ function NumberBadge({ n }: { n: number }) {
     </span>
   );
 }
-
-const CATEGORY_ICONS = [
-  PiggyBank,
-  HeartPulse,
-  WalletCards,
-  Zap,
-  Sprout,
-  GraduationCap,
-  Shield,
-  Landmark,
-  Building2,
-  Zap,
-  BriefcaseBusiness,
-  BookOpen,
-  WalletCards,
-  Sprout,
-  BadgeHelp,
-];
 
 type PartySelectOption = {
   id: string;
@@ -97,21 +66,17 @@ function fallbackPartyOptions(): PartySelectOption[] {
 }
 
 // オンボーディングフォーム（1画面縦スクロール）
-// ステップ分割なし: 年代・支持政党・関心テーマを一度に表示する
+// ステップ分割なし: 年代・支持政党を一度に表示する
 export function OnboardingForm() {
   const router = useRouter();
   const [ageGroup, setAgeGroup] = useState<string | null>(null);
   const [supportedPartyId, setSupportedPartyId] = useState<string | null>(null);
-  const [interestedCategoryIds, setInterestedCategoryIds] = useState<string[]>([]);
   const [partyOptions, setPartyOptions] = useState<PartySelectOption[]>(fallbackPartyOptions);
 
   useEffect(() => {
     const prefs = getPreferences();
     setAgeGroup(prefs.ageGroup);
     setSupportedPartyId(prefs.supportedPartyId);
-    setInterestedCategoryIds(
-      prefs.interestedCategoryIds.filter((id) => id !== SKIPPED_INTEREST_CATEGORY_ID),
-    );
   }, []);
 
   useEffect(() => {
@@ -134,10 +99,7 @@ export function OnboardingForm() {
     savePreferences({
       ageGroup: ageGroup ?? "no_answer",
       supportedPartyId: supportedPartyId ?? "unknown",
-      interestedCategoryIds:
-        interestedCategoryIds.length > 0
-          ? interestedCategoryIds
-          : [SKIPPED_INTEREST_CATEGORY_ID],
+      interestedCategoryIds: [SKIPPED_INTEREST_CATEGORY_ID],
       onboardingCompleted: true,
     });
 
@@ -153,13 +115,6 @@ export function OnboardingForm() {
       onboardingCompleted: true,
     });
     router.push("/");
-  };
-
-  // 3. 関心テーマのトグル処理
-  const toggleCategory = (id: string) => {
-    setInterestedCategoryIds((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
-    );
   };
 
   return (
@@ -271,6 +226,7 @@ export function OnboardingForm() {
         />
       </section>
 
+      {/*
       <section className="onboarding-step onboarding-step--category">
         <div className="onboarding-step__head">
           <NumberBadge n={3} />
@@ -316,6 +272,7 @@ export function OnboardingForm() {
           aria-hidden="true"
         />
       </section>
+      */}
 
       <div className="onboarding-actions">
         <button
