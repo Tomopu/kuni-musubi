@@ -319,6 +319,11 @@ a {
     display: none;
   }
 
+  .app-header__nav .survey-nav-link span {
+    display: inline;
+    font-size: 11px;
+  }
+
   .app-shell {
     width: min(100% - 32px, 1040px);
     padding-top: 22px;
@@ -2907,6 +2912,184 @@ a {
 .markdown-content a {
   color: #347fb4;
   text-decoration: underline;
+}
+
+/* アンケートリンク（ヘッダー・フッター）*/
+.app-header__sep {
+  color: var(--color-border);
+  font-size: 14px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.survey-nav-link {
+  color: var(--color-brand-deep) !important;
+}
+
+.survey-nav-link:hover {
+  color: var(--color-brand-deep) !important;
+}
+
+.app-footer__survey-link {
+  color: var(--color-brand-deep);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* アンケートポップアップ */
+.survey-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.survey-popup {
+  position: relative;
+  width: min(100%, 390px);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 28px 24px 24px;
+  box-shadow:
+    0 24px 60px rgba(16, 20, 47, 0.14),
+    0 4px 16px rgba(16, 20, 47, 0.08);
+  pointer-events: auto;
+  animation: survey-popup-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes survey-popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.survey-popup__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.survey-popup__close:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+}
+
+.survey-popup__mascot {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  width: 100px;
+  height: auto;
+  pointer-events: none;
+}
+
+.survey-popup__head {
+  position: relative;
+  margin-bottom: 12px;
+  padding-right: 112px;
+}
+
+.survey-popup__title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+  margin-bottom: 40px;
+}
+
+.survey-popup__deco {
+  position: absolute;
+  top: 10px;
+  right: 125px;
+  width: 28px;
+  height: auto;
+  pointer-events: none;
+}
+
+.survey-popup__body {
+  margin-bottom: 18px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.75;
+}
+
+.survey-popup__btn-primary {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  border-radius: 12px;
+  background: var(--color-brand-primary);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+  margin-bottom: 10px;
+}
+
+.survey-popup__btn-primary:hover {
+  background: var(--color-brand-deep);
+  transform: translateY(-1px);
+}
+
+.survey-popup__btn-dismiss {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.survey-popup__btn-dismiss:hover {
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 640px) {
+  .survey-overlay {
+    padding: 16px;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .survey-popup {
+    width: 100%;
+  }
 }
 
 /* prefers-reduced-motion: アニメーション無効化 */

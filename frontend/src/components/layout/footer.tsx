@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SURVEY_URL } from "@/lib/constants/survey";
 
 export function Footer() {
   return (
@@ -15,6 +16,14 @@ export function Footer() {
           <Link href="/parties">政党一覧</Link>
           <Link href="/about">このアプリについて</Link>
           <Link href="/settings">設定</Link>
+          <a
+            href={SURVEY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="app-footer__survey-link"
+          >
+            【お願い】利用者アンケートはこちら
+          </a>
         </nav>
       </div>
       <p className="app-footer__copyright">© 2026 Kuni-Musubi</p>
