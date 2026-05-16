@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Info, Landmark, Settings } from "lucide-react";
+import { ClipboardList, Info, Landmark, Settings } from "lucide-react";
+import { SURVEY_URL } from "@/lib/constants/survey";
 
 export function Header() {
   return (
@@ -30,6 +31,17 @@ export function Header() {
           <Link href="/settings" aria-label="設定">
             <Settings size={20} />
           </Link>
+          <span className="app-header__sep" aria-hidden="true">|</span>
+          <a
+            href={SURVEY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="アンケートに答える"
+            className="survey-nav-link"
+          >
+            <ClipboardList size={17} />
+            <span>アンケート</span>
+          </a>
         </nav>
       </div>
     </header>

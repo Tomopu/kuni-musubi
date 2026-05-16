@@ -30,9 +30,9 @@ from app.api.admin.import_service import (
     list_import_party_names,
 )
 from app.infrastructure.db.models import (
-    AdminUser,
     Article,
     ArticleDisplayContent,
+    ArticleSource,
     ArticleEvent,
     DailyArticleStat,
     DailyCategoryStat,
@@ -40,6 +40,7 @@ from app.infrastructure.db.models import (
     ImportJobLog,
     Party,
     PolicyCategory,
+    article_categories,
     article_parties,
 )
 from app.infrastructure.db.dev_schema import ensure_dev_schema
@@ -62,6 +63,13 @@ PARTIES_EXPORT_PATH = (
     / "parties_export.json"
 )
 _ADMIN_PARTY_SCHEMA_READY = False
+SOURCE_TYPE_OPTIONS = [
+    "party_official",
+    "government",
+    "local_government",
+    "news_media",
+    "other",
+]
 
 
 def _redirect_with_msg(path: str, msg: str, msg_type: str = "success"):
@@ -103,6 +111,14 @@ def _normalize_article_status(status: str | None) -> str:
     return "draft"
 
 
+def _normalize_source_type(source_type: str | None) -> str | None:
+    """source_type を許可値に正規化する。"""
+    value = (source_type or "").strip()
+    if not value:
+        return None
+    return value if value in SOURCE_TYPE_OPTIONS else "other"
+
+
 def _is_article_published(status: str | None) -> bool:
     """公開可否をステータスから導出する。"""
     return _normalize_article_status(status) == "published"
@@ -122,6 +138,54 @@ def _parse_party_ids(party_ids: list[str]) -> list[uuid.UUID]:
         parsed.append(pid)
         seen.add(pid)
     return parsed
+
+
+def _parse_uuid_list(values: list[str]) -> list[uuid.UUID]:
+    """フォームから送られた UUID 文字列を順序維持・重複除去して返す。"""
+    parsed: list[uuid.UUID] = []
+    seen: set[uuid.UUID] = set()
+    for value in values:
+        try:
+            item_id = uuid.UUID(value)
+        except ValueError:
+            continue
+        if item_id in seen:
+            continue
+        parsed.append(item_id)
+        seen.add(item_id)
+    return parsed
+
+
+def _split_source_rows(names: list[str], urls: list[str]) -> list[tuple[str, str]]:
+    """source_name/source_url のフォーム配列を空URL除外でペア化する。"""
+    rows: list[tuple[str, str]] = []
+    max_len = max(len(names), len(urls))
+    for index in range(max_len):
+        name = names[index].strip() if index < len(names) else ""
+        url = urls[index].strip() if index < len(urls) else ""
+        if not url:
+            continue
+        rows.append((name, url))
+    return rows
+
+
+def _prepare_article_source_context(
+    article: Article | None,
+) -> tuple[ArticleSource | None, list[ArticleSource]]:
+    """記事編集フォーム用に一次情報ソースと参考ソースを分離する。"""
+    if article is None:
+        return None, []
+    primary_source = None
+    for source in article.sources:
+        if source.source_url == article.primary_source_url:
+            primary_source = source
+            break
+    if primary_source is None and article.sources:
+        primary_source = article.sources[0]
+    reference_sources = [
+        source for source in article.sources if source is not primary_source
+    ]
+    return primary_source, reference_sources
 
 
 def _to_json_value(value):
@@ -360,6 +424,7 @@ def articles_new_page(request: Request, db: Session = Depends(get_db)):
     if not admin:
         return RedirectResponse("/admin/login", status_code=302)
     parties = db.query(Party).order_by(Party.display_order).all()
+    categories = db.query(PolicyCategory).order_by(PolicyCategory.display_order).all()
     return templates.TemplateResponse(
         request=request,
         name="admin/articles/form.html",
@@ -368,7 +433,12 @@ def articles_new_page(request: Request, db: Session = Depends(get_db)):
             "display_content": None,
             "admin": admin,
             "parties": parties,
+            "categories": categories,
             "article_party_ids": set(),
+            "article_category_ids": set(),
+            "primary_source": None,
+            "reference_sources": [],
+            "source_type_options": SOURCE_TYPE_OPTIONS,
         },
     )
 
@@ -380,10 +450,14 @@ def articles_create(
     original_title: str = Form(""),
     source_type: str = Form(""),
     primary_source_url: str = Form(""),
+    primary_source_title: str = Form(""),
     published_at: str = Form(...),
     status: str = Form("draft"),
     important_rank: Optional[str] = Form(None),
     party_ids: list[str] = Form(default=[]),
+    category_ids: list[str] = Form(default=[]),
+    reference_source_titles: list[str] = Form(default=[]),
+    reference_source_urls: list[str] = Form(default=[]),
     display_title: str = Form(""),
     card_summary: str = Form(""),
     thumbnail_type: str = Form("none"),
@@ -407,7 +481,7 @@ def articles_create(
         normalized_status = _normalize_article_status(status)
         article = Article(
             original_title=original_title or None,
-            source_type=source_type or None,
+            source_type=_normalize_source_type(source_type),
             primary_source_url=primary_source_url or None,
             published_at=dt,
             status=normalized_status,
@@ -440,6 +514,42 @@ def articles_create(
                     relation_type="primary" if i == 0 else "mentioned",
                 )
             )
+        # 6. article_categories を作成する
+        for order, category_id in enumerate(_parse_uuid_list(category_ids)):
+            db.execute(
+                article_categories.insert().values(
+                    article_id=article.id,
+                    category_id=category_id,
+                    display_order=order,
+                )
+            )
+        # 7. article_sources を作成する
+        normalized_source_type = _normalize_source_type(source_type)
+        if primary_source_url.strip():
+            db.add(
+                ArticleSource(
+                    article_id=article.id,
+                    source_name=primary_source_title.strip() or original_title or None,
+                    source_url=primary_source_url.strip(),
+                    source_type=normalized_source_type,
+                    published_at=dt,
+                    retrieved_at=datetime.now(timezone.utc),
+                )
+            )
+        for source_title, source_url in _split_source_rows(
+            reference_source_titles,
+            reference_source_urls,
+        ):
+            db.add(
+                ArticleSource(
+                    article_id=article.id,
+                    source_name=source_title or None,
+                    source_url=source_url,
+                    source_type="other",
+                    published_at=None,
+                    retrieved_at=datetime.now(timezone.utc),
+                )
+            )
         db.commit()
         return _redirect_with_msg("/admin/articles", "記事を作成しました")
     except Exception as e:
@@ -462,7 +572,10 @@ def articles_edit_page(
     if not article:
         return _redirect_with_msg("/admin/articles", "記事が見つかりません", "error")
     parties = db.query(Party).order_by(Party.display_order).all()
+    categories = db.query(PolicyCategory).order_by(PolicyCategory.display_order).all()
     article_party_ids = {str(p.id) for p in article.parties}
+    article_category_ids = {str(c.id) for c in article.categories}
+    primary_source, reference_sources = _prepare_article_source_context(article)
     return templates.TemplateResponse(
         request=request,
         name="admin/articles/form.html",
@@ -471,7 +584,12 @@ def articles_edit_page(
             "display_content": article.display_content,
             "admin": admin,
             "parties": parties,
+            "categories": categories,
             "article_party_ids": article_party_ids,
+            "article_category_ids": article_category_ids,
+            "primary_source": primary_source,
+            "reference_sources": reference_sources,
+            "source_type_options": SOURCE_TYPE_OPTIONS,
         },
     )
 
@@ -484,10 +602,14 @@ def articles_update(
     original_title: str = Form(""),
     source_type: str = Form(""),
     primary_source_url: str = Form(""),
+    primary_source_title: str = Form(""),
     published_at: str = Form(...),
     status: str = Form("draft"),
     important_rank: Optional[str] = Form(None),
     party_ids: list[str] = Form(default=[]),
+    category_ids: list[str] = Form(default=[]),
+    reference_source_titles: list[str] = Form(default=[]),
+    reference_source_urls: list[str] = Form(default=[]),
     display_title: str = Form(""),
     card_summary: str = Form(""),
     thumbnail_type: str = Form("none"),
@@ -513,7 +635,7 @@ def articles_update(
             dt = dt.replace(tzinfo=timezone.utc)
         # 4. Article を更新する（status から is_published を導出する）
         article.original_title = original_title or None
-        article.source_type = source_type or None
+        article.source_type = _normalize_source_type(source_type)
         article.primary_source_url = primary_source_url or None
         article.published_at = dt
         normalized_status = _normalize_article_status(status)
@@ -560,6 +682,48 @@ def articles_update(
                     relation_type="primary" if i == 0 else "mentioned",
                 )
             )
+        # 7. article_categories を更新する（既存を削除して再作成）
+        db.execute(
+            sa_delete(article_categories).where(
+                article_categories.c.article_id == article_id
+            )
+        )
+        for order, category_id in enumerate(_parse_uuid_list(category_ids)):
+            db.execute(
+                article_categories.insert().values(
+                    article_id=article_id,
+                    category_id=category_id,
+                    display_order=order,
+                )
+            )
+        # 8. article_sources を更新する（既存を削除して再作成）
+        db.query(ArticleSource).filter(ArticleSource.article_id == article_id).delete()
+        normalized_source_type = _normalize_source_type(source_type)
+        if primary_source_url.strip():
+            db.add(
+                ArticleSource(
+                    article_id=article_id,
+                    source_name=primary_source_title.strip() or original_title or None,
+                    source_url=primary_source_url.strip(),
+                    source_type=normalized_source_type,
+                    published_at=dt,
+                    retrieved_at=datetime.now(timezone.utc),
+                )
+            )
+        for source_title, source_url in _split_source_rows(
+            reference_source_titles,
+            reference_source_urls,
+        ):
+            db.add(
+                ArticleSource(
+                    article_id=article_id,
+                    source_name=source_title or None,
+                    source_url=source_url,
+                    source_type="other",
+                    published_at=None,
+                    retrieved_at=datetime.now(timezone.utc),
+                )
+            )
         db.commit()
         return _redirect_with_msg("/admin/articles", "記事を更新しました")
     except Exception as e:
@@ -587,6 +751,16 @@ def articles_delete(
             db.delete(article.display_content)
         for source in article.sources:
             db.delete(source)
+        db.execute(
+            sa_delete(article_parties).where(
+                article_parties.c.article_id == article_id
+            )
+        )
+        db.execute(
+            sa_delete(article_categories).where(
+                article_categories.c.article_id == article_id
+            )
+        )
         db.flush()
         # 4. 記事を削除する
         db.delete(article)
@@ -1246,6 +1420,8 @@ def imports_run(
     job_type: str = Form(...),
     party_name: str = Form(""),
     single_url: str = Form(""),
+    single_body_text: str = Form(""),
+    supplemental_url_text: str = Form(""),
     url_list_text: str = Form(""),
     url_source_name: str = Form("manual"),
     url_source_type: str = Form("party_official"),
@@ -1264,6 +1440,11 @@ def imports_run(
         return _redirect_with_msg("/admin/imports", "GEMINI_API_KEY が設定されていません", "error")
     # 4. URL ソースを組み立てる
     url_sources = None
+    supplemental_urls = [
+        line.strip()
+        for line in supplemental_url_text.splitlines()
+        if line.strip().startswith("http")
+    ]
     if job_type == "url_list" and url_list_text.strip():
         lines = [ln.strip() for ln in url_list_text.splitlines() if ln.strip()]
         url_sources = [
@@ -1282,6 +1463,10 @@ def imports_run(
         job_type=job_type,
         party_name=party_name.strip() or None,
         single_url=single_url.strip() or None,
+        single_source_name=url_source_name or "manual",
+        single_source_type=url_source_type or "party_official",
+        single_body_text=single_body_text.strip() or None,
+        supplemental_urls=supplemental_urls if job_type == "single_url" else None,
         url_sources=url_sources,
         dry_run=(job_type == "dry_run") or (dry_run == "on"),
         fetch_only=(job_type == "fetch_only"),

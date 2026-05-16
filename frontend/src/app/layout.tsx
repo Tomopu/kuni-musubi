@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { SurveyTracker } from "@/features/survey/components/survey-tracker";
 
 export const metadata: Metadata = {
   title: "Kuni-Musubi",
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Header />
         <main>{children}</main>
         <Footer />
+        <SurveyTracker />
       </body>
     </html>
   );
