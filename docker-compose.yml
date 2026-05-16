@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kuni_musubi
+      POSTGRES_PASSWORD: kuni_musubi
+      POSTGRES_DB: kuni_musubi
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kuni_musubi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://kuni_musubi:kuni_musubi@db:5432/kuni_musubi
+      CORS_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000","http://192.168.3.229:3000"]'
+      AUTO_SEED_DEMO_DATA: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+        - action: sync
+          path: ./docs/research/data
+          target: /app/docs/research/data
+
+  # frontend はローカル起動を基本とする。
+  # docker compose --profile full up で起動する。
+  frontend:
+    profiles: [full]
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://192.168.3.229:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

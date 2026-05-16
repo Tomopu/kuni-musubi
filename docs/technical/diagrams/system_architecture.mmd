@@ -1,0 +1,46 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Arial, Hiragino Sans, Meiryo, sans-serif", "primaryColor": "#EAF7F0", "primaryBorderColor": "#4C9A6A", "primaryTextColor": "#173323", "lineColor": "#5C6B61", "secondaryColor": "#EEF4FF", "tertiaryColor": "#FFF7E6"}}}%%
+flowchart TB
+  user["一般ユーザー<br/>Mobile / Desktop Browser"]
+  admin["管理者<br/>Admin Browser"]
+
+  subgraph browser["Browser Local State"]
+    localStorage["localStorage<br/>onboarding / settings<br/>※サーバー送信なし"]
+  end
+
+  subgraph vercel["Vercel"]
+    next["Next.js Frontend<br/>Home / Articles / Parties / Settings / About"]
+  end
+
+  subgraph supabase["Supabase"]
+    backend["Backend API<br/>Articles / Parties / Categories / Analytics / Admin"]
+    adminApi["Admin Import API<br/>batch job trigger / progress logs"]
+    scheduler["Scheduled Jobs / Cron<br/>daily article import"]
+    batch["Batch Worker<br/>scrape / PDF / YouTube transcript / LLM process"]
+    db[("Supabase PostgreSQL<br/>articles / article_sources / article_display_contents<br/>parties / policy_categories<br/>article_events / import_jobs")]
+  end
+
+  subgraph external["External Services / Sources"]
+    partySites["政党公式サイト<br/>RSS / HTML / PDF"]
+    govSites["政府・国会系サイト<br/>PDF / HTML"]
+    youtube["YouTube<br/>playlist / transcript"]
+    gemini["Gemini API<br/>summarize / classify / grounding"]
+  end
+
+  user --> next
+  next <--> localStorage
+  next --> backend
+  admin --> next
+  next --> adminApi
+
+  backend --> db
+  adminApi --> db
+  adminApi --> batch
+  scheduler --> batch
+
+  batch --> partySites
+  batch --> govSites
+  batch --> youtube
+  batch --> gemini
+  batch --> db
+
+  backend --> next
