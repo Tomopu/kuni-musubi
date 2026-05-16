@@ -37,6 +37,7 @@ class JobParams:
     single_url: str | None = None
     single_source_name: str = "manual"
     single_source_type: str = "party_official"
+    single_body_text: str | None = None
     supplemental_urls: list[str] | None = None
     url_sources: list[dict[str, str]] | None = None
     dry_run: bool = False
@@ -131,6 +132,7 @@ def create_and_start_job(params: JobParams) -> uuid.UUID:
                 "single_url": params.single_url,
                 "single_source_name": params.single_source_name,
                 "single_source_type": params.single_source_type,
+                "single_body_text": params.single_body_text,
                 "supplemental_urls": params.supplemental_urls,
                 "url_sources": params.url_sources,
                 "dry_run": params.dry_run,
@@ -267,6 +269,7 @@ def _run_job(job_id: uuid.UUID, params: JobParams) -> None:
             single_url=params.single_url,
             single_source_name=params.single_source_name,
             single_source_type=params.single_source_type,
+            single_body_text=params.single_body_text,
             supplemental_urls=params.supplemental_urls,
             url_sources=url_sources,
             progress_callback=callback,

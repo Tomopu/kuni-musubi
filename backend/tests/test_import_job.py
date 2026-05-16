@@ -167,6 +167,7 @@ class TestImportsRunRoute:
                     "single_url": "https://example.com/article.html",
                     "url_source_name": "自由民主党",
                     "url_source_type": "party_official",
+                    "single_body_text": "これは手動で入力した本文です。",
                     "supplemental_url_text": (
                         "https://example.com/document.pdf\n"
                         "https://www.youtube.com/watch?v=abc123\n"
@@ -181,6 +182,7 @@ class TestImportsRunRoute:
         params = mock_create.call_args[0][0]
         assert params.single_source_name == "自由民主党"
         assert params.single_source_type == "party_official"
+        assert params.single_body_text == "これは手動で入力した本文です。"
         assert params.supplemental_urls == [
             "https://example.com/document.pdf",
             "https://www.youtube.com/watch?v=abc123",
