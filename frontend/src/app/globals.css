@@ -3085,6 +3085,8 @@ a {
     padding: 16px;
     align-items: flex-end;
     justify-content: center;
+    background: rgba(31, 41, 55, 0.46);
+    pointer-events: auto;
   }
 
   .survey-popup {
