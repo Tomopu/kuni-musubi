@@ -146,6 +146,46 @@ class TestImportsRunRoute:
         params = mock_create.call_args[0][0]
         assert params.party_name == "日本保守党"
 
+    def test_passes_single_url_supplemental_urls_to_job_params(
+        self,
+        client: TestClient,
+    ) -> None:
+        """単一URLの補足資料URLを JobParams に渡す。"""
+        with (
+            patch("app.api.admin.router.get_current_admin") as mock_auth,
+            patch("app.api.admin.router.get_active_job", return_value=None),
+            patch("app.api.admin.router.has_gemini_key", return_value=True),
+            patch("app.api.admin.router.create_and_start_job") as mock_create,
+        ):
+            mock_auth.return_value = MagicMock()
+            mock_create.return_value = uuid.uuid4()
+
+            resp = client.post(
+                "/admin/imports/run",
+                data={
+                    "job_type": "single_url",
+                    "single_url": "https://example.com/article.html",
+                    "url_source_name": "自由民主党",
+                    "url_source_type": "party_official",
+                    "supplemental_url_text": (
+                        "https://example.com/document.pdf\n"
+                        "https://www.youtube.com/watch?v=abc123\n"
+                        "not-a-url"
+                    ),
+                },
+                follow_redirects=False,
+            )
+
+        assert resp.status_code == 302
+        mock_create.assert_called_once()
+        params = mock_create.call_args[0][0]
+        assert params.single_source_name == "自由民主党"
+        assert params.single_source_type == "party_official"
+        assert params.supplemental_urls == [
+            "https://example.com/document.pdf",
+            "https://www.youtube.com/watch?v=abc123",
+        ]
+
 
 class TestBulkArticleAction:
     """POST /admin/articles/bulk-action のテスト。"""
