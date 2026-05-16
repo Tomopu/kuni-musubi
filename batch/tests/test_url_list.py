@@ -4,7 +4,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 import yaml
 
 from batch.steps.fetch import ManualSource
@@ -198,3 +197,27 @@ class TestPipelineWithUrlSources:
         assert len(events) > 0
         messages = [e.message for e in events]
         assert any("URL リストモード" in m for m in messages)
+
+    def test_single_body_text_skips_url_fetch(self) -> None:
+        """本文直接入力がある場合、単一 URL の本文取得をスキップする。"""
+        from batch.pipelines.article_pipeline import PipelineEvent, run_article_pipeline
+
+        events: list[PipelineEvent] = []
+
+        def callback(event: PipelineEvent) -> None:
+            events.append(event)
+
+        with patch("batch.pipelines.article_pipeline._fetch_single_url") as mock_fetch:
+            result = run_article_pipeline(
+                single_url="https://www.youtube.com/watch?v=test",
+                single_source_name="手動入力",
+                single_source_type="party_official",
+                single_body_text="これは管理画面から直接入力した本文です。",
+                fetch_only=True,
+                progress_callback=callback,
+            )
+
+        mock_fetch.assert_not_called()
+        assert result.total_fetched == 1
+        messages = [e.message for e in events]
+        assert any("本文直接入力を使用します" in m for m in messages)

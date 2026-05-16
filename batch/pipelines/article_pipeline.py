@@ -217,6 +217,7 @@ def run_article_pipeline(
     single_url: str | None = None,
     single_source_name: str = "manual",
     single_source_type: str = "party_official",
+    single_body_text: str | None = None,
     supplemental_urls: list[str] | None = None,
     url_sources: list[ManualSource] | None = None,
     progress_callback: "Callable[[PipelineEvent], None] | None" = None,
@@ -237,6 +238,7 @@ def run_article_pipeline(
         single_url: 指定した URL 1件のみを処理する。
         single_source_name: single_url の出典名。
         single_source_type: single_url の出典種別。
+        single_body_text: single_url の本文を手動指定する場合の本文。
         supplemental_urls: single_url に追記する補足資料URLリスト。
         url_sources: 手動指定 URL ソースのリスト。CLI --url-list や admin 入力用。
         progress_callback: 進捗イベントを受け取るコールバック。
@@ -251,28 +253,48 @@ def run_article_pipeline(
     # 1. フィードまたは URL リストまたは単一 URL から記事を取得する
     if single_url:
         normalized = _normalize_url(single_url)
-        media_type = detect_url_media_type(normalized)
         _emit(progress_callback, "info", f"[pipeline] 単一 URL モード: {normalized}")
-        if media_type == "pdf":
-            _emit(progress_callback, "info", "[pdf] ページ解析中...")
-        elif media_type == "youtube":
-            _emit(progress_callback, "info", "[youtube] 字幕取得中...")
-        try:
-            fetch_results: list[FetchResult] = [_fetch_single_url(single_url)]
-        except ValueError as exc:
-            _emit(
-                progress_callback,
-                "error",
-                f"[pipeline] テキスト抽出に失敗しました: {exc}",
-            )
-            result.errors.append(str(exc))
-            return result
-        except Exception as exc:
-            _emit(progress_callback, "error", f"[pipeline] URL 取得エラー: {exc}")
-            result.errors.append(str(exc))
-            return result
-        fetch_results[0].source_name = single_source_name or "manual"
-        fetch_results[0].source_type = single_source_type or "party_official"
+        manual_text = (single_body_text or "").strip()
+        if manual_text:
+            _emit(progress_callback, "info", "[pipeline] 本文直接入力を使用します")
+            fetch_results = [
+                FetchResult(
+                    title=normalized,
+                    source_url=normalized,
+                    source_name=single_source_name or "manual",
+                    source_type=single_source_type or "party_official",
+                    published_at=datetime.now(timezone.utc).isoformat(),
+                    body_text=manual_text,
+                    feed_url=normalized,
+                    media_type="manual_text",
+                )
+            ]
+        else:
+            media_type = detect_url_media_type(normalized)
+            if media_type == "pdf":
+                _emit(progress_callback, "info", "[pdf] ページ解析中...")
+            elif media_type == "youtube":
+                _emit(progress_callback, "info", "[youtube] 字幕取得中...")
+            try:
+                fetch_results = [_fetch_single_url(single_url)]
+            except ValueError as exc:
+                _emit(
+                    progress_callback,
+                    "error",
+                    f"[pipeline] テキスト抽出に失敗しました: {exc}",
+                )
+                result.errors.append(str(exc))
+                return result
+            except Exception as exc:
+                _emit(
+                    progress_callback,
+                    "error",
+                    f"[pipeline] URL 取得エラー: {exc}",
+                )
+                result.errors.append(str(exc))
+                return result
+            fetch_results[0].source_name = single_source_name or "manual"
+            fetch_results[0].source_type = single_source_type or "party_official"
         if supplemental_urls:
             _append_supplemental_urls(
                 fetch_results[0],
