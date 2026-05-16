@@ -35,6 +35,9 @@ class JobParams:
     job_type: str  # full | fetch_only | dry_run | single_url | url_list
     party_name: str | None = None
     single_url: str | None = None
+    single_source_name: str = "manual"
+    single_source_type: str = "party_official"
+    supplemental_urls: list[str] | None = None
     url_sources: list[dict[str, str]] | None = None
     dry_run: bool = False
     fetch_only: bool = False
@@ -126,6 +129,9 @@ def create_and_start_job(params: JobParams) -> uuid.UUID:
             params=json.dumps({
                 "party_name": params.party_name,
                 "single_url": params.single_url,
+                "single_source_name": params.single_source_name,
+                "single_source_type": params.single_source_type,
+                "supplemental_urls": params.supplemental_urls,
                 "url_sources": params.url_sources,
                 "dry_run": params.dry_run,
                 "fetch_only": params.fetch_only,
@@ -259,6 +265,9 @@ def _run_job(job_id: uuid.UUID, params: JobParams) -> None:
             dry_run=params.dry_run,
             fetch_only=params.fetch_only,
             single_url=params.single_url,
+            single_source_name=params.single_source_name,
+            single_source_type=params.single_source_type,
+            supplemental_urls=params.supplemental_urls,
             url_sources=url_sources,
             progress_callback=callback,
         )

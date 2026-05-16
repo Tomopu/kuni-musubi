@@ -1420,6 +1420,7 @@ def imports_run(
     job_type: str = Form(...),
     party_name: str = Form(""),
     single_url: str = Form(""),
+    supplemental_url_text: str = Form(""),
     url_list_text: str = Form(""),
     url_source_name: str = Form("manual"),
     url_source_type: str = Form("party_official"),
@@ -1438,6 +1439,11 @@ def imports_run(
         return _redirect_with_msg("/admin/imports", "GEMINI_API_KEY が設定されていません", "error")
     # 4. URL ソースを組み立てる
     url_sources = None
+    supplemental_urls = [
+        line.strip()
+        for line in supplemental_url_text.splitlines()
+        if line.strip().startswith("http")
+    ]
     if job_type == "url_list" and url_list_text.strip():
         lines = [ln.strip() for ln in url_list_text.splitlines() if ln.strip()]
         url_sources = [
@@ -1456,6 +1462,9 @@ def imports_run(
         job_type=job_type,
         party_name=party_name.strip() or None,
         single_url=single_url.strip() or None,
+        single_source_name=url_source_name or "manual",
+        single_source_type=url_source_type or "party_official",
+        supplemental_urls=supplemental_urls if job_type == "single_url" else None,
         url_sources=url_sources,
         dry_run=(job_type == "dry_run") or (dry_run == "on"),
         fetch_only=(job_type == "fetch_only"),
