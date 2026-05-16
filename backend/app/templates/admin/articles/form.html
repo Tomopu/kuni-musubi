@@ -21,15 +21,25 @@
       <div class="row mb-3">
         <div class="col-md-4">
           <label for="source_type" class="form-label">ソース種別</label>
-          <input type="text" id="source_type" name="source_type" class="form-control"
-                 placeholder="party_official"
-                 value="{{ article.source_type or '' if article else '' }}">
+          {% set current_source_type = article.source_type if article and article.source_type in source_type_options else '' %}
+          <select id="source_type" name="source_type" class="form-select">
+            <option value="" {{ 'selected' if not current_source_type else '' }}>未設定</option>
+            {% for option in source_type_options %}
+              <option value="{{ option }}" {{ 'selected' if current_source_type == option else '' }}>{{ option }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div class="col-md-8">
           <label for="primary_source_url" class="form-label">一次情報 URL</label>
           <input type="text" id="primary_source_url" name="primary_source_url" class="form-control"
                  value="{{ article.primary_source_url or '' if article else '' }}">
         </div>
+      </div>
+      <div class="mb-3">
+        <label for="primary_source_title" class="form-label">一次情報の表示名（タイトル）</label>
+        {% set primary_source_title = primary_source.source_name if primary_source else article.original_title if article else '' %}
+        <input type="text" id="primary_source_title" name="primary_source_title" class="form-control"
+               value="{{ primary_source_title or '' }}">
       </div>
       <div class="row mb-3">
         <div class="col-md-4">
@@ -82,6 +92,63 @@
         {% endfor %}
       </div>
       <div class="form-text text-muted mt-2">表示順で最初の選択が primary、以降は mentioned になります。未選択でも保存できます。</div>
+    </div>
+  </div>
+
+  <!-- 関連カテゴリ -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">カテゴリタグ</div>
+    <div class="card-body">
+      <div class="row row-cols-2 row-cols-md-3 g-2">
+        {% for category in categories %}
+        <div class="col">
+          <div class="form-check">
+            <input type="checkbox" id="category_{{ category.id }}" name="category_ids"
+                   value="{{ category.id }}"
+                   class="form-check-input"
+                   {{ 'checked' if category.id|string in article_category_ids else '' }}>
+            <label for="category_{{ category.id }}" class="form-check-label">
+              {{ category.name }}
+            </label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="form-text text-muted mt-2">選択した順ではなく、画面表示順で保存されます。</div>
+    </div>
+  </div>
+
+  <!-- 参考URL -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">グラウンディングした参考URL</div>
+    <div class="card-body">
+      <div class="form-text text-muted mb-3">URL が空の行は保存されません。</div>
+      {% for source in reference_sources %}
+      <div class="row g-2 mb-2">
+        <div class="col-md-5">
+          <label class="form-label small fw-bold">表示名（タイトル）</label>
+          <input type="text" name="reference_source_titles" class="form-control form-control-sm"
+                 value="{{ source.source_name or '' }}">
+        </div>
+        <div class="col-md-7">
+          <label class="form-label small fw-bold">URL</label>
+          <input type="text" name="reference_source_urls" class="form-control form-control-sm"
+                 value="{{ source.source_url }}">
+        </div>
+      </div>
+      {% endfor %}
+      {% for _ in range(3) %}
+      <div class="row g-2 mb-2">
+        <div class="col-md-5">
+          <label class="form-label small fw-bold">表示名（タイトル）</label>
+          <input type="text" name="reference_source_titles" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-7">
+          <label class="form-label small fw-bold">URL</label>
+          <input type="text" name="reference_source_urls" class="form-control form-control-sm">
+        </div>
+      </div>
+      {% endfor %}
     </div>
   </div>
 
