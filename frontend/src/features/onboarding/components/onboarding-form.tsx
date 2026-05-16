@@ -164,6 +164,19 @@ export function OnboardingForm() {
 
   return (
     <div className="onboarding-form">
+      <div className="privacy-note">
+        <LockKeyhole size={20} />
+        <p>
+          回答は端末内に保存され、表示内容の調整に使われます。サーバーには送信されません。
+          <Link
+            href="/about"
+            className="privacy-note__link"
+          >
+            このアプリの考え方を見る
+          </Link>
+        </p>
+      </div>
+
       <section className="onboarding-step onboarding-step--age">
         <div className="onboarding-step__head">
           <NumberBadge n={1} />
@@ -303,19 +316,6 @@ export function OnboardingForm() {
           aria-hidden="true"
         />
       </section>
-
-      <div className="privacy-note">
-        <LockKeyhole size={20} />
-        <p>
-          回答は端末内に保存され、表示内容の調整に使われます。サーバーには送信されません。
-          <Link
-            href="/about"
-            className="privacy-note__link"
-          >
-            このアプリの考え方を見る
-          </Link>
-        </p>
-      </div>
 
       <div className="onboarding-actions">
         <button
